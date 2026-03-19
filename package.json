@@ -1,0 +1,30 @@
+{
+  "name": "creatorlayer",
+  "version": "0.1.0",
+  "description": "Official Node.js / TypeScript SDK for the Creatorlayer API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "creatorlayer",
+    "creator-finance",
+    "income-verification",
+    "risk-tape"
+  ],
+  "author": "SATOSHI FRAMEWORK SASU",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^5.4.0"
+  }
+}
