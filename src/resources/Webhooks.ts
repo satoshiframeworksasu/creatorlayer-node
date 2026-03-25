@@ -7,6 +7,9 @@ import type {
 } from "../types.js";
 import { CreatorlayerWebhookSignatureError } from "../errors.js";
 
+/** Maximum age (seconds) of a signed webhook request before it is rejected. */
+const REPLAY_TOLERANCE_SECONDS = 300;
+
 export class Webhooks {
   constructor(private readonly client: Creatorlayer) {}
 
@@ -43,14 +46,18 @@ export class Webhooks {
   }
 
   // ---------------------------------------------------------------------------
-  // Signature verification
+  // Signature & replay-protection verification
   // ---------------------------------------------------------------------------
 
   /**
-   * Verify the `X-Creatorlayer-Signature` header on an incoming webhook request.
+   * Verify the `X-Creatorlayer-Signature` and `X-Creatorlayer-Timestamp` headers
+   * on an incoming webhook request, then parse and return the payload.
    *
    * Always call this before processing any webhook payload.
    * Throws `CreatorlayerWebhookSignatureError` if verification fails.
+   *
+   * Pass the `X-Creatorlayer-Timestamp` header value in `options.timestamp` to
+   * enable replay-attack protection (requests older than 5 minutes are rejected).
    *
    * @example
    * // Express
@@ -58,7 +65,8 @@ export class Webhooks {
    *   const event = cl.webhooks.verifyAndParse(
    *     req.body,
    *     req.headers["x-creatorlayer-signature"] as string,
-   *     process.env.WEBHOOK_SECRET!
+   *     process.env.WEBHOOK_SECRET!,
+   *     { timestamp: req.headers["x-creatorlayer-timestamp"] as string }
    *   );
    *   if (event.event === "verification.completed") {
    *     // fetch the tape
@@ -69,8 +77,22 @@ export class Webhooks {
   verifyAndParse(
     rawBody: Buffer | string,
     signature: string,
-    secret: string
+    secret: string,
+    options?: { timestamp?: string; toleranceSeconds?: number }
   ): WebhookEventPayload {
+    // Replay protection — validate timestamp if provided
+    if (options?.timestamp !== undefined) {
+      const ts = Number(options.timestamp);
+      if (!Number.isFinite(ts) || ts <= 0) {
+        throw new CreatorlayerWebhookSignatureError();
+      }
+      const tolerance = options.toleranceSeconds ?? REPLAY_TOLERANCE_SECONDS;
+      const ageSeconds = Math.floor(Date.now() / 1000) - ts;
+      if (ageSeconds > tolerance || ageSeconds < -60) {
+        throw new CreatorlayerWebhookSignatureError();
+      }
+    }
+
     const body =
       typeof rawBody === "string" ? Buffer.from(rawBody) : rawBody;
 
@@ -91,16 +113,17 @@ export class Webhooks {
   }
 
   /**
-   * Returns true if the signature is valid, false otherwise.
+   * Returns true if the signature (and optional timestamp) is valid, false otherwise.
    * Use `verifyAndParse` if you want to parse the payload at the same time.
    */
   verifySignature(
     rawBody: Buffer | string,
     signature: string,
-    secret: string
+    secret: string,
+    options?: { timestamp?: string; toleranceSeconds?: number }
   ): boolean {
     try {
-      this.verifyAndParse(rawBody, signature, secret);
+      this.verifyAndParse(rawBody, signature, secret, options);
       return true;
     } catch {
       return false;

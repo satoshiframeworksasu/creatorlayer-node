@@ -61,7 +61,9 @@ app.post(
     const event = cl.webhooks.verifyAndParse(
       req.body,
       req.headers["x-creatorlayer-signature"] as string,
-      process.env.WEBHOOK_SECRET!
+      process.env.WEBHOOK_SECRET!,
+      // Pass the timestamp header to enable replay-attack protection (5-min window)
+      { timestamp: req.headers["x-creatorlayer-timestamp"] as string }
     );
 
     if (event.event === "verification.completed") {
@@ -132,8 +134,8 @@ The SDK automatically retries `429` (honouring `Retry-After`) and `503` response
 | `.create(params)` | Register a webhook endpoint. |
 | `.list()` | List registered endpoints. |
 | `.del(webhookId)` | Delete a webhook endpoint. |
-| `.verifyAndParse(body, signature, secret)` | Verify signature and return parsed payload. Throws on failure. |
-| `.verifySignature(body, signature, secret)` | Verify signature. Returns boolean. |
+| `.verifyAndParse(body, signature, secret, options?)` | Verify signature (and optional timestamp for replay protection) and return parsed payload. Throws on failure. |
+| `.verifySignature(body, signature, secret, options?)` | Verify signature. Returns boolean. |
 
 ### `cl.gdpr` (requires `gdpr_admin` key)
 
@@ -152,6 +154,27 @@ Use `obligor_reference` values starting with `test-` to trigger synthetic flows 
 | `test-complete-*` | `verification.completed` event within ~5 seconds |
 | `test-fail-*` | `verification.failed` event (reason: `platform_error`) |
 | `test-expire-*` | `verification.expired` event |
+
+## Data Residency & GDPR
+
+Creatorlayer is EU-native infrastructure. All API endpoints are hosted within the European Union (France) and no personal data leaves the EU.
+
+This SDK is a stateless HTTP client — it does not cache, log, or persist any personal data on your infrastructure.
+
+Built-in GDPR data subject rights:
+- `cl.gdpr.access()` — Right of Access (Art. 15)
+- `cl.gdpr.erase()` — Right to Erasure (Art. 17)
+- `cl.gdpr.export()` — Right to Data Portability (Art. 20)
+
+These methods require a `gdpr_admin` API key. See [GDPR documentation](https://docs.creatorlayer.eu/compliance/soc2-overview) for details.
+
+**Data Processing Agreement**: Available at [docs.creatorlayer.eu/legal/dpa](https://docs.creatorlayer.eu/legal/dpa).
+
+See [LEGAL.md](./LEGAL.md) for full legal notices and sub-processor list.
+
+## License
+
+MIT — see [LICENSE](./LICENSE).
 
 ## Links
 
