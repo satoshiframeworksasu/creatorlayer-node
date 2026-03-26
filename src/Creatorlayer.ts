@@ -16,7 +16,7 @@ import { Webhooks } from "./resources/Webhooks.js";
 import { GDPR } from "./resources/GDPR.js";
 
 const PRODUCTION_URL = "https://api.creatorlayer.eu";
-const SANDBOX_URL = "https://sandbox-api.creatorlayer.eu";
+const SANDBOX_URL = "https://api-sandbox.creatorlayer.eu";
 
 const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_TIMEOUT = 30_000;

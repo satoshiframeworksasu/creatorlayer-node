@@ -190,7 +190,7 @@ export interface CreatorlayerOptions {
   apiKey: string;
   /**
    * Use the sandbox environment for testing.
-   * Equivalent to setting baseUrl to "https://sandbox-api.creatorlayer.eu".
+   * Equivalent to setting baseUrl to "https://api-sandbox.creatorlayer.eu".
    */
   sandbox?: boolean;
   /**
