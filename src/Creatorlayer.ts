@@ -14,6 +14,11 @@ import { Verifications } from "./resources/Verifications.js";
 import { Benchmarks } from "./resources/Benchmarks.js";
 import { Webhooks } from "./resources/Webhooks.js";
 import { GDPR } from "./resources/GDPR.js";
+import { Dashboard } from "./resources/Dashboard.js";
+import { Usage } from "./resources/Usage.js";
+import { EconomyIndex } from "./resources/EconomyIndex.js";
+import { Intelligence } from "./resources/Intelligence.js";
+import { Securitization } from "./resources/Securitization.js";
 
 const PRODUCTION_URL = "https://api.creatorlayer.eu";
 const SANDBOX_URL = "https://api-sandbox.creatorlayer.eu";
@@ -34,6 +39,11 @@ export class Creatorlayer {
   readonly benchmarks: Benchmarks;
   readonly webhooks: Webhooks;
   readonly gdpr: GDPR;
+  readonly dashboard: Dashboard;
+  readonly usage: Usage;
+  readonly economyIndex: EconomyIndex;
+  readonly intelligence: Intelligence;
+  readonly securitization: Securitization;
 
   private readonly apiKey: string;
   private readonly baseUrl: string;
@@ -55,6 +65,11 @@ export class Creatorlayer {
     this.benchmarks = new Benchmarks(this);
     this.webhooks = new Webhooks(this);
     this.gdpr = new GDPR(this);
+    this.dashboard = new Dashboard(this);
+    this.usage = new Usage(this);
+    this.economyIndex = new EconomyIndex(this);
+    this.intelligence = new Intelligence(this);
+    this.securitization = new Securitization(this);
   }
 
   // ---------------------------------------------------------------------------

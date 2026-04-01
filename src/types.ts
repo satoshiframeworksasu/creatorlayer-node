@@ -182,6 +182,309 @@ export interface GDPRExportResponse {
 }
 
 // ---------------------------------------------------------------------------
+// Dashboard
+// ---------------------------------------------------------------------------
+
+export type DashboardVerificationStatus =
+  | "pending_creator_consent"
+  | "pending_tape"
+  | "completed"
+  | "failed"
+  | "expired";
+
+export type RiskTierFilter = "prime" | "standard" | "subprime" | "ineligible";
+
+export interface DashboardVerificationSummary {
+  verification_id: string;
+  obligor_reference: string;
+  status: DashboardVerificationStatus;
+  risk_tier: RiskTier | null;
+  creator_score: number | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface DashboardStats {
+  total_verifications: number;
+  completed: number;
+  pending: number;
+  failed: number;
+  avg_creator_score: number | null;
+  risk_tier_distribution: {
+    prime: number;
+    standard: number;
+    subprime: number;
+    ineligible: number;
+  };
+  verifications_this_month: number;
+  verifications_last_month: number;
+}
+
+export interface PipelineView {
+  verifications: DashboardVerificationSummary[];
+  stats: DashboardStats;
+  page: number;
+  per_page: number;
+  total: number;
+  total_pages: number;
+}
+
+export interface VerificationDetail {
+  verification_id: string;
+  obligor_reference: string;
+  status: DashboardVerificationStatus;
+  product_type: string;
+  consent_url: string | null;
+  created_at: string;
+  updated_at: string;
+  tape: RiskTape | null;
+  creator_score: number | null;
+}
+
+export interface ListVerificationsParams {
+  page?: number;
+  per_page?: number;
+  status?: DashboardVerificationStatus;
+  risk_tier?: RiskTierFilter;
+  search?: string;
+  date_from?: string;
+  date_to?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Usage
+// ---------------------------------------------------------------------------
+
+export interface UsageSummary {
+  lender_id: string;
+  plan_tier: string;
+  today: {
+    total_requests: number;
+    verifications_created: number;
+    tapes_completed: number;
+    errors: number;
+  };
+  this_month: {
+    verifications_created: number;
+    quota: number | null;
+    quota_used_pct: number | null;
+  };
+  rate_limits: {
+    minute_limit: number;
+    day_limit: number;
+  };
+}
+
+export interface UsageDayEntry {
+  date: string;
+  total_requests: number;
+  verifications_created: number;
+  tapes_completed: number;
+  errors: number;
+}
+
+export interface UsageHistory {
+  lender_id: string;
+  days: number;
+  history: UsageDayEntry[];
+}
+
+// ---------------------------------------------------------------------------
+// Creator Economy Index
+// ---------------------------------------------------------------------------
+
+export interface IndexComponent {
+  name: string;
+  weight: number;
+  value: number;
+  change_1m: number | null;
+}
+
+export interface CreatorIndex {
+  index_id: string;
+  date: string;
+  value: number;
+  change_1m: number | null;
+  change_3m: number | null;
+  change_12m: number | null;
+  components: IndexComponent[];
+  methodology_version: string;
+}
+
+export interface IndexHistoryResponse {
+  history: CreatorIndex[];
+  count: number;
+}
+
+export interface IndexComponentsResponse {
+  date: string;
+  index_value: number;
+  components: IndexComponent[];
+  methodology_version: string;
+}
+
+// ---------------------------------------------------------------------------
+// Market Intelligence
+// ---------------------------------------------------------------------------
+
+export interface ReportPeriod {
+  start: string; // YYYY-MM
+  end: string;   // YYYY-MM
+}
+
+export interface ReportFilters {
+  vertical?: string;
+  jurisdiction?: string;
+  size_band?: string;
+}
+
+export interface MarketReportSummary {
+  report_id: string;
+  title: string;
+  period: ReportPeriod;
+  generated_at: string;
+  total_creators: number;
+}
+
+export interface TopVertical {
+  vertical: string;
+  count: number;
+  avg_revenue: number;
+}
+
+export interface SegmentAnalysis {
+  dimension: string;
+  value: string;
+  count: number;
+  metrics: Record<string, unknown>;
+}
+
+export interface TrendPoint {
+  date: string;
+  value: number;
+}
+
+export interface TrendData {
+  metric: string;
+  periods: TrendPoint[];
+}
+
+export interface MarketReport {
+  report_id: string;
+  title: string;
+  period: ReportPeriod;
+  generated_at: string;
+  summary: {
+    total_creators: number;
+    total_revenue_volume: number;
+    avg_creator_score: number;
+    avg_volatility: number;
+    yoy_growth: number | null;
+    top_verticals: TopVertical[];
+  };
+  segments: SegmentAnalysis[];
+  trends: TrendData[];
+  methodology: string;
+}
+
+export interface ListReportsResponse {
+  reports: MarketReportSummary[];
+}
+
+export interface GenerateReportParams {
+  period: ReportPeriod;
+  filters?: ReportFilters;
+}
+
+// ---------------------------------------------------------------------------
+// Securitization
+// ---------------------------------------------------------------------------
+
+export interface PoolCriteria {
+  min_creator_score: number | null;
+  max_risk_tier: RiskTier | null;
+  min_data_quality: number | null;
+  jurisdictions: string[] | null;
+  verticals: string[] | null;
+  min_track_record_months: number | null;
+}
+
+export interface SecuritizationPool {
+  pool_id: string;
+  name: string;
+  criteria: PoolCriteria;
+  created_at: string;
+  verification_ids: string[];
+}
+
+export interface DataQualityDistribution {
+  avg_score: number | null;
+  nd1_total: number;
+  nd2_total: number;
+  nd3_total: number;
+  nd4_total: number;
+}
+
+export interface PoolComposition {
+  pool_id: string;
+  creator_count: number;
+  total_exposure: number;
+  weighted_avg_risk_tier: string;
+  risk_tier_distribution: Record<string, number>;
+  geographic_distribution: Record<string, number>;
+  vertical_distribution: Record<string, number>;
+  data_quality_distribution: DataQualityDistribution;
+}
+
+export interface PoolDetail {
+  pool: SecuritizationPool;
+  composition: PoolComposition;
+}
+
+export interface LoanLevelEntry {
+  obligor_reference: string;
+  jurisdiction: string;
+  entity_type: string;
+  risk_tier: string;
+  exposure_amount: number | null;
+  origination_date: string;
+  maturity_date: string | null;
+  monthly_revenue_avg: number | null;
+  volatility_cv: number | null;
+  max_drawdown: number | null;
+  hhi: number | null;
+  data_quality_score: number;
+  nd_breakdown: { ND1: number; ND2: number; ND3: number; ND4: number };
+}
+
+export interface LoanLevelResponse {
+  pool_id: string;
+  count: number;
+  loan_level_data: LoanLevelEntry[];
+}
+
+export interface EsmaPoolReport {
+  report_id: string;
+  pool_id: string;
+  pool_name: string;
+  generated_at: string;
+  reporting_entity: string;
+  esma_schema_version: string;
+  composition: PoolComposition;
+  loan_level_data: LoanLevelEntry[];
+  nd_code_definitions: { ND1: string; ND2: string; ND3: string; ND4: string };
+}
+
+export interface CreatePoolParams {
+  name: string;
+  criteria?: Partial<PoolCriteria>;
+}
+
+export interface AddToPoolParams {
+  verification_ids: string[];
+}
+
+// ---------------------------------------------------------------------------
 // Client configuration
 // ---------------------------------------------------------------------------
 
