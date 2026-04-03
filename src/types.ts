@@ -79,6 +79,10 @@ export interface VerificationStatus_ {
   obligor_reference: string;
   created_at: string;
   updated_at: string;
+  /** Financial product type the verification was created with. */
+  product_type?: ProductType;
+  /** Platforms the creator was asked to connect. */
+  creator_platforms?: Platform[];
 }
 
 // ---------------------------------------------------------------------------
