@@ -2,8 +2,38 @@
 // Core domain types
 // ---------------------------------------------------------------------------
 
-export type Platform = "youtube" | "stripe";
-export type ProductType = "rbf";
+/**
+ * Supported creator platforms for income verification.
+ *
+ * Revenue platforms — contribute cashflow data to the Risk Tape:
+ *   youtube, stripe, twitch, patreon, shopify, etsy, gumroad
+ *
+ * Audience platforms — strengthen creator profile (ND3, no revenue signal):
+ *   tiktok, meta, twitter, pinterest, reddit, linkedin, snapchat, discord, amazon
+ *
+ * No public API platforms — profile verification only (ND4):
+ *   substack, medium, telegram, bluesky, vinted
+ */
+export type Platform =
+  // Revenue platforms
+  | "youtube" | "stripe" | "twitch" | "patreon" | "shopify" | "etsy" | "gumroad"
+  // Audience platforms (ND3 — no revenue API)
+  | "tiktok" | "meta" | "twitter" | "pinterest" | "reddit"
+  | "linkedin" | "snapchat" | "discord" | "amazon"
+  // No public API (ND4 — profile verification only)
+  | "substack" | "medium" | "telegram" | "bluesky" | "vinted";
+/**
+ * Financial product type. Drives eligibility dispatcher routing.
+ * All types are accepted by POST /api/v1/verifications.
+ */
+export type ProductType =
+  | "rbf"                  // Revenue-Based Financing
+  | "term_loan"            // Fixed-term amortising loan
+  | "revenue_loan"         // Fixed instalment sized off revenue
+  | "venture_debt"         // Growth-oriented; tolerates higher volatility
+  | "murabaha"             // Sharia-compliant cost-plus sale structure
+  | "hpp"                  // Home Purchase Plan (Islamic mortgage equivalent)
+  | "securitization_pool"; // At individual-tape level for securitization pools
 export type VerificationStatus =
   | "pending_consent"
   | "processing"
