@@ -30,6 +30,8 @@ export interface CreateVerificationParams {
   lender_name?: string;
   /** Financial product type. Currently only "rbf". */
   product_type?: ProductType;
+  /** Creator email address — pre-fills the consent UI and sends a consent link if provided. */
+  creator_email?: string;
 }
 
 export interface VerificationCreated {
@@ -89,7 +91,10 @@ export interface RiskTape {
     covenants: string[];
   }>;
   data_quality: {
+    /** Overall data quality score 0–100. Also available as `overall_score`. */
     score: number;
+    /** Alias for `score` — matches the API response field `overall_score`. */
+    overall_score?: number;
     tier_a_fields_present: number;
     nd_summary: {
       ND1: number;
