@@ -10,7 +10,7 @@ This SDK is distributed under the **MIT License**. See [LICENSE](./LICENSE).
 Société par Actions Simplifiée Unipersonnelle (SASU)
 Registered in France
 
-Contact: hello@satoshiframework.com
+Contact: hello@creatorlayer.eu
 
 ## Data Residency & GDPR
 
@@ -49,7 +49,7 @@ Creators whose data is processed via the API retain the following rights under G
 If you are a regulated lender using this SDK, you may be acting as a **joint controller** or **independent controller** for personal data received via the Risk Tape. You are responsible for:
 
 - Maintaining your own legal basis for processing creator data received from Creatorlayer
-- Executing the Creatorlayer **Data Processing Agreement (DPA)** — contact hello@satoshiframework.com
+- Executing the Creatorlayer **Data Processing Agreement (DPA)** — contact hello@creatorlayer.eu
 - Complying with applicable regulations (GDPR, DORA, EBA Outsourcing Guidelines, etc.)
 - Notifying your competent supervisory authority of any material outsourcing arrangement
 
@@ -57,7 +57,7 @@ If you are a regulated lender using this SDK, you may be acting as a **joint con
 
 A full Data Processing Agreement is available on request. Current sub-processors are listed in the [Creatorlayer compliance documentation](https://docs.creatorlayer.eu/compliance/soc2-overview).
 
-Contact **hello@satoshiframework.com** to request the DPA.
+Contact **hello@creatorlayer.eu** to request the DPA.
 
 ## Third-Party Notices
 

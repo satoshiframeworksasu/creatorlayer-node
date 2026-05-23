@@ -5,37 +5,45 @@
 /**
  * Supported creator platforms for income verification.
  *
- * Revenue platforms — contribute cashflow data to the Risk Tape:
- *   youtube, stripe, twitch, patreon, shopify, etsy, gumroad
+ * Revenue platforms (verified_revenue):
+ *   adsense, stripe, shopify, etsy, gumroad, sellfy, paddle
+ *   amazon — verified_revenue when connected via SP-API; audience_only otherwise
  *
- * Audience platforms — strengthen creator profile (ND3, no revenue signal):
- *   tiktok, meta, twitter, pinterest, reddit, linkedin, snapchat, discord, amazon
+ * Revenue platforms (strong_proxy — estimated, no direct revenue API):
+ *   twitch, patreon
  *
- * No public API platforms — profile verification only (ND4):
+ * Audience-only platforms (ND3 — connected via OAuth, no revenue API):
+ *   youtube, tiktok, meta, twitter, pinterest, reddit, linkedin, snapchat, discord
+ *
+ * No public API (ND4 — consent captured, no data fetchable):
  *   substack, medium, telegram, bluesky, vinted
  */
 export type Platform =
-  // Revenue platforms
-  | "youtube" | "stripe" | "twitch" | "patreon" | "shopify" | "etsy" | "gumroad"
-  // Audience platforms (ND3 — no revenue API)
-  | "tiktok" | "meta" | "twitter" | "pinterest" | "reddit"
-  | "linkedin" | "snapchat" | "discord" | "amazon"
-  // No public API (ND4 — profile verification only)
-  | "substack" | "medium" | "telegram" | "bluesky" | "vinted";
+  // Revenue platforms (verified_revenue)
+  | "adsense" | "stripe" | "shopify" | "etsy" | "gumroad" | "sellfy" | "paddle" | "amazon"
+  // Revenue platforms (strong_proxy)
+  | "twitch" | "patreon"
+  // Audience-only (ND3 — no revenue API)
+  | "youtube" | "tiktok" | "meta" | "twitter" | "pinterest" | "reddit"
+  | "linkedin" | "snapchat" | "discord"
+  // No public API (ND4)
+  | "substack" | "medium" | "telegram" | "bluesky" | "vinted"
+  // Catch-all for unlisted platforms that may appear in Risk Tape output
+  | "other";
 /**
  * Financial product type. Drives eligibility dispatcher routing.
  * All types are accepted by POST /api/v1/verifications.
  */
 export type ProductType =
-  | "rbf"                  // Revenue-Based Financing
   | "term_loan"            // Fixed-term amortising loan
+  | "rbf"                  // Revenue-Based Financing
   | "revenue_loan"         // Fixed instalment sized off revenue
   | "venture_debt"         // Growth-oriented; tolerates higher volatility
-  | "murabaha"             // Sharia-compliant cost-plus sale structure
-  | "hpp"                  // Home Purchase Plan (Islamic mortgage equivalent)
+  | "murabaha"             // Islamic finance — cost-plus sale (AAOIFI standard)
+  | "hpp"                  // Islamic finance — Home Purchase Plan / Diminishing Musharakah
   | "securitization_pool"; // At individual-tape level for securitization pools
 export type VerificationStatus =
-  | "pending_consent"
+  | "pending_creator_consent"
   | "processing"
   | "completed"
   | "failed"
@@ -45,7 +53,9 @@ export type NDCode = "ND1" | "ND2" | "ND3" | "ND4";
 export type WebhookEventType =
   | "verification.completed"
   | "verification.failed"
-  | "verification.expired";
+  | "verification.expired"
+  | "tape.updated"
+  | "consent.revoked";
 
 // ---------------------------------------------------------------------------
 // Verifications
@@ -54,23 +64,43 @@ export type WebhookEventType =
 export interface CreateVerificationParams {
   /** Your internal identifier for the creator. Max 100 characters. No PII. */
   obligor_reference: string;
-  /** Platforms to verify. At least one required. */
-  creator_platforms: Platform[];
   /** Name of your organisation shown to the creator on the consent page. */
   lender_name?: string;
-  /** Financial product type. Currently only "rbf". */
+  /** Financial product type. Defaults to "rbf" if omitted. */
   product_type?: ProductType;
   /** Creator email address — pre-fills the consent UI and sends a consent link if provided. */
   creator_email?: string;
+  /** ISO 639-1 language code for the consent UI. Defaults to "en". */
+  language?: string;
+  /**
+   * Per-verification webhook endpoint. Receives a `verification.completed` event
+   * when the creator finishes the consent flow. Overrides the account-level webhook
+   * URL set on the lender profile.
+   */
+  webhook_url?: string;
+  /**
+   * Opaque reference string (max 200 characters). Passed through to webhook payloads
+   * and returned on GET /verifications/:id. Use to correlate with your internal loan
+   * or application ID.
+   */
+  custom_reference?: string;
 }
 
 export interface VerificationCreated {
   verification_id: string;
-  status: "pending_consent";
+  /** Echoed from request — your internal creator ID. */
+  obligor_reference: string;
+  /** Echoed from request — financial product type. */
+  product_type: string;
+  status: "pending_creator_consent";
   /** Send this URL to the creator so they can connect their platforms. */
   consent_url: string;
   /** ISO 8601. Consent session expires after 7 days. */
   expires_at: string;
+  created_at: string;
+  lender_id: string;
+  /** Echoed back from the request if provided. */
+  custom_reference?: string;
 }
 
 export interface VerificationStatus_ {
@@ -81,62 +111,195 @@ export interface VerificationStatus_ {
   updated_at: string;
   /** Financial product type the verification was created with. */
   product_type?: ProductType;
-  /** Platforms the creator was asked to connect. */
-  creator_platforms?: Platform[];
+  consent_url?: string | null;
+  webhook_url?: string | null;
+  custom_reference?: string | null;
 }
 
 // ---------------------------------------------------------------------------
 // Risk Tape
 // ---------------------------------------------------------------------------
 
+/** Machine-readable covenant attached to an eligibility decision. */
+export interface Covenant {
+  code: string;
+  description: string;
+  metric: string;
+  threshold: number;
+  window_months: number;
+  measurement_frequency: "monthly" | "quarterly";
+}
+
+export interface EligibilityResult {
+  product_type: ProductType;
+  eligible: boolean;
+  risk_tier: RiskTier;
+  max_advance_amount: number | null;
+  max_revenue_share_pct?: number | null;
+  payback_cap_multiple?: number | null;
+  max_tenor_months?: number | null;
+  dscr_stressed?: number | null;
+  stressed_net_income?: number | null;
+  dti_ratio?: number | null;
+  sharia_eligible?: boolean | null;
+  murabaha_viable?: boolean | null;
+  diminishing_musharakah_viable?: boolean | null;
+  income_stability_score?: number | null;
+  income_trend?: "growing" | "stable" | "declining" | "insufficient_data" | null;
+  /** CRA-style forward-looking outlook. */
+  outlook?: "positive" | "stable" | "negative" | null;
+  /** True when risk_tier was downgraded due to insufficient data quality. */
+  dq_capped?: boolean;
+  /** Contract-neutral alias for max_advance_amount. */
+  income_capacity_annual?: number | null;
+  /** Contract-neutral alias for max_revenue_share_pct. */
+  recommended_monthly_ceiling_pct?: number | null;
+  flags: Array<{ code: string }>;
+  covenants: Covenant[];
+  /** Thresholds applied to reach this decision — lenders can use this to verify the tier. */
+  applied_thresholds?: Record<string, number | string[]>;
+}
+
 export interface RiskTape {
   schema_version: string;
+  methodology_version?: string;
   verification_id: string;
   as_of_date: string;
   status: string;
+  /** "conventional" for standard products; "islamic" for murabaha / hpp. */
+  finance_class?: "conventional" | "islamic";
   obligor: {
-    reference: string;
-    creator_platforms: Platform[];
+    obligor_id: string;
+    jurisdiction?: string | null;
+    creator_vertical?: string | null;
+    creator_size_band?: "nano" | "micro" | "mid" | "macro" | "mega" | null;
+    legal_name?: string | null;
   };
   platform_connections: Array<{
     platform: Platform;
-    connected_at: string;
-    status: "ok" | "error" | "pending";
-    nd_code: NDCode | null;
+    handle_or_channel_id?: string | null;
+    role: "revenue" | "audience";
+    /**
+     * verified_revenue — direct API revenue data.
+     * strong_proxy     — estimated from engagement/subscription signals.
+     * audience_only    — identity/audience signal only; no revenue contribution.
+     * fx_excluded      — revenue fetched but ECB normalisation unavailable.
+     */
+    data_quality: "verified_revenue" | "strong_proxy" | "audience_only" | "fx_excluded";
+    consent_status: "active" | "revoked" | "expired";
+    first_sync_at: string;
+    last_sync_at: string;
+    account_created_date?: string | null;
+    nd_code?: NDCode | null;
+    platform_data?: Record<string, unknown> | null;
   }>;
   cashflow_summary: {
     currency: string;
-    total_revenue_12m: number | null;
-    total_revenue_3m: number | null;
-    avg_monthly_revenue_12m: number | null;
-    revenue_by_platform: Record<string, number>;
+    track_record_months: number;
+    income_30d: number | null;
+    income_90d: number | null;
+    avg_monthly_revenue: number | null;
+    median_monthly_revenue?: number | null;
+    revenue_monthly: Array<{
+      month: string;
+      gross_amount: number | null;
+      nd_code?: NDCode | null;
+    }>;
+    platform_totals?: Record<string, number>;
+    top_platform_share?: number | null;
   };
   risk_profile: {
+    avg_monthly_revenue: number | null;
     volatility_cv_12m: number | null;
     max_drawdown_pct_36m: number | null;
     platform_concentration_index: number | null;
-    trend_slope_6m: number | null;
+    top_platform_share: number | null;
+    track_record_months: number;
+    yoy_growth_pct?: number | null;
+    income_trend_slope_pct?: number | null;
+    seasonal_adjustment_flag?: boolean | null;
+    high_risk_platform_flag?: boolean | null;
+    dispute_rate?: number | null;
+    platform_dependency_flag?: boolean | null;
   };
-  eligibility: Array<{
-    product_type: ProductType;
-    risk_tier: RiskTier;
-    max_advance_eur: number | null;
-    flags: string[];
-    covenants: string[];
-  }>;
+  eligibility: EligibilityResult[];
   data_quality: {
-    /** Overall data quality score 0–100. Also available as `overall_score`. */
-    score: number;
-    /** Alias for `score` — matches the API response field `overall_score`. */
-    overall_score?: number;
-    tier_a_fields_present: number;
-    nd_summary: {
-      ND1: number;
-      ND2: number;
-      ND3: number;
-      ND4: number;
-    };
+    overall_score: number;
+    completeness_score: number;
+    nd_score: number;
+    consistency_score: number;
+    nd_breakdown: { ND1: number; ND2: number; ND3: number; ND4: number };
+    mandatory_fields_missing: string[];
+    quality_flags: string[];
   };
+  /**
+   * FX normalisation audit trail. Present when at least one platform revenue
+   * was denominated in a non-EUR currency and successfully converted via ECB rates.
+   * Null when all platforms reported EUR natively or when ECB rates were unavailable.
+   */
+  fx_context?: {
+    as_of_date: string;
+    rate_source: string;
+    converted_platforms: Array<{ platform: string; original_currency: string }>;
+    rates_applied: Record<string, number>;
+    excluded_platforms?: string[];
+  } | null;
+  /** Present on murabaha and hpp tapes only. */
+  islamic_compliance?: {
+    sharia_eligible: boolean | null;
+    status: "permissible" | "flagged" | "insufficient_data";
+    screening_provider: string;
+    screened_at: string;
+  } | null;
+  jurisdiction_profile?: {
+    jurisdiction: string;
+    data_protection_regime: string;
+    gdpr_applies: boolean;
+  } | null;
+  overlay_blocks?: Array<{
+    provider: string;
+    block_type: string;
+    data: Record<string, unknown>;
+  }>;
+}
+
+/** Response envelope for GET /verifications/:id/tape. */
+export interface TapeResponse {
+  tape: RiskTape;
+  /**
+   * Compact ES256 JWT. Verify offline: fetch public key from GET /.well-known/jwks.json,
+   * verify signature, then check revocation via POST /api/v1/risk-tapes/verify.
+   * Null when TAPE_SIGNING_PRIVATE_KEY is not configured on the API server.
+   */
+  signed_jwt: string | null;
+}
+
+/** Response from GET /verifications/:id/eligibility — free, no tape decryption. */
+export interface EligibilityCheck {
+  verification_id: string;
+  eligible: boolean | null;
+  risk_tier: RiskTier | null;
+  /** Present when tape not yet computed (creator consent may be pending). */
+  status?: string;
+  note?: string;
+}
+
+/** Result of POST /api/v1/risk-tapes/verify. */
+export interface TapeVerifyResult {
+  valid: boolean;
+  revoked: boolean;
+  expired: boolean;
+  verification_id?: string;
+  obligor_id?: string;
+  /** ISO 8601 expiry timestamp. Present on valid tokens. */
+  expires_at?: string;
+  /** "token_expired" | "invalid_signature" | "signing_not_configured" */
+  error?: string;
+}
+
+/** Response from GET /.well-known/jwks.json. */
+export interface JwksResponse {
+  keys: Array<Record<string, unknown>>;
 }
 
 // ---------------------------------------------------------------------------
@@ -473,6 +636,13 @@ export interface PoolComposition {
   geographic_distribution: Record<string, number>;
   vertical_distribution: Record<string, number>;
   data_quality_distribution: DataQualityDistribution;
+  /** CRA-style pool quality score (0–100). null when pool has no tapes. */
+  pool_score: number | null;
+  /**
+   * Letter rating derived from pool_score. A ≥ 70 · B ≥ 50 · C ≥ 30 · D < 30.
+   * ESMA RTS 2017/592.
+   */
+  pool_rating: 'A' | 'B' | 'C' | 'D' | null;
 }
 
 export interface PoolDetail {

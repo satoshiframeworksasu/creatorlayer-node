@@ -19,6 +19,7 @@ import { Usage } from "./resources/Usage.js";
 import { EconomyIndex } from "./resources/EconomyIndex.js";
 import { Intelligence } from "./resources/Intelligence.js";
 import { Securitization } from "./resources/Securitization.js";
+import { RiskTapes } from "./resources/RiskTapes.js";
 
 const PRODUCTION_URL = "https://api.creatorlayer.eu";
 const SANDBOX_URL = "https://api-sandbox.creatorlayer.eu";
@@ -36,6 +37,7 @@ interface RequestOptions {
 
 export class Creatorlayer {
   readonly verifications: Verifications;
+  readonly riskTapes: RiskTapes;
   readonly benchmarks: Benchmarks;
   readonly webhooks: Webhooks;
   readonly gdpr: GDPR;
@@ -62,6 +64,7 @@ export class Creatorlayer {
       (options.sandbox ? SANDBOX_URL : PRODUCTION_URL);
 
     this.verifications = new Verifications(this);
+    this.riskTapes = new RiskTapes(this);
     this.benchmarks = new Benchmarks(this);
     this.webhooks = new Webhooks(this);
     this.gdpr = new GDPR(this);

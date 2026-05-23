@@ -11,6 +11,7 @@ export { Usage } from "./resources/Usage.js";
 export { EconomyIndex } from "./resources/EconomyIndex.js";
 export { Intelligence } from "./resources/Intelligence.js";
 export { Securitization } from "./resources/Securitization.js";
+export { RiskTapes } from "./resources/RiskTapes.js";
 
 // Errors
 export {
@@ -37,6 +38,12 @@ export type {
   VerificationCreated,
   VerificationStatus_ as VerificationStatusResponse,
   RiskTape,
+  EligibilityResult,
+  Covenant,
+  TapeResponse,
+  EligibilityCheck,
+  TapeVerifyResult,
+  JwksResponse,
   BenchmarkMetric,
   Benchmarks as BenchmarksResponse,
   CreateWebhookParams,

@@ -23,8 +23,9 @@ const cl = new Creatorlayer({
 // 1. Create a verification
 const { verification_id, consent_url } = await cl.verifications.create({
   obligor_reference: "creator-abc-123",
-  creator_platforms: ["youtube", "stripe"],
   lender_name: "Acme Finance",
+  webhook_url: "https://your-server.example.com/webhooks/creatorlayer",
+  custom_reference: "LOAN-2026-0001",
 });
 
 // Send consent_url to the creator so they can connect their platforms
