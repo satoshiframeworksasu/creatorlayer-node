@@ -87,4 +87,26 @@ export class Verifications {
       `/api/v1/verifications/${verificationId}/eligibility`
     );
   }
+
+  /**
+   * Download a signed PDF report for a completed verification.
+   *
+   * Returns a Buffer containing the PDF bytes. Call `GET /tape` at least
+   * once before this endpoint — the PDF is generated from the stored tape.
+   *
+   * The PDF embeds the signed JWT and a public verification URL
+   * (`creatorlayer.eu/verify?token=…`) so recipients without API access can
+   * independently confirm the document's authenticity.
+   *
+   * @example
+   * const pdf = await cl.verifications.downloadTapePdf(verificationId);
+   * fs.writeFileSync(`tape-${verificationId}.pdf`, pdf);
+   */
+  async downloadTapePdf(verificationId: string): Promise<Buffer> {
+    const response = await this.client._requestRaw(
+      "GET",
+      `/api/v1/verifications/${verificationId}/tape/pdf`,
+    );
+    return Buffer.from(await response.arrayBuffer());
+  }
 }

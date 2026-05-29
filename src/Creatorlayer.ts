@@ -11,6 +11,7 @@ import {
   CreatorlayerServerError,
 } from "./errors.js";
 import { Verifications } from "./resources/Verifications.js";
+import { ConsentSessions } from "./resources/ConsentSessions.js";
 import { Benchmarks } from "./resources/Benchmarks.js";
 import { Webhooks } from "./resources/Webhooks.js";
 import { GDPR } from "./resources/GDPR.js";
@@ -37,6 +38,7 @@ interface RequestOptions {
 
 export class Creatorlayer {
   readonly verifications: Verifications;
+  readonly consentSessions: ConsentSessions;
   readonly riskTapes: RiskTapes;
   readonly benchmarks: Benchmarks;
   readonly webhooks: Webhooks;
@@ -64,6 +66,7 @@ export class Creatorlayer {
       (options.sandbox ? SANDBOX_URL : PRODUCTION_URL);
 
     this.verifications = new Verifications(this);
+    this.consentSessions = new ConsentSessions(this);
     this.riskTapes = new RiskTapes(this);
     this.benchmarks = new Benchmarks(this);
     this.webhooks = new Webhooks(this);
@@ -78,6 +81,21 @@ export class Creatorlayer {
   // ---------------------------------------------------------------------------
   // Internal HTTP client — used by resource classes
   // ---------------------------------------------------------------------------
+
+  /** Like _request but returns the raw Response for binary payloads (e.g. PDF). */
+  async _requestRaw(
+    method: string,
+    path: string,
+    options: RequestOptions = {},
+  ): Promise<Response> {
+    const url = this._buildUrl(path, options.query);
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${this.apiKey}`,
+      "User-Agent": "creatorlayer-node/0.1.0",
+      ...options.headers,
+    };
+    return this._executeWithRetry<Response>(method, url, headers, undefined, options.retry ?? true, 0, true);
+  }
 
   async _request<T>(
     method: string,
@@ -108,7 +126,8 @@ export class Creatorlayer {
     headers: Record<string, string>,
     body: string | undefined,
     autoRetry: boolean,
-    attempt = 0
+    attempt = 0,
+    rawResponse = false,
   ): Promise<T> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeout);
@@ -138,17 +157,22 @@ export class Creatorlayer {
     if (response.status === 429 && autoRetry && attempt < this.maxRetries) {
       const retryAfter = parseInt(response.headers.get("Retry-After") ?? "5", 10);
       await sleep(retryAfter * 1000);
-      return this._executeWithRetry(method, url, headers, body, autoRetry, attempt + 1);
+      return this._executeWithRetry(method, url, headers, body, autoRetry, attempt + 1, rawResponse);
     }
 
     // Retry on 503 — exponential backoff
     if (response.status === 503 && autoRetry && attempt < this.maxRetries) {
       await sleep(1000 * Math.pow(2, attempt));
-      return this._executeWithRetry(method, url, headers, body, autoRetry, attempt + 1);
+      return this._executeWithRetry(method, url, headers, body, autoRetry, attempt + 1, rawResponse);
     }
 
     if (!response.ok) {
       await this._throwError(response);
+    }
+
+    // Raw response mode (binary payloads like PDF)
+    if (rawResponse) {
+      return response as unknown as T;
     }
 
     // 204 No Content
