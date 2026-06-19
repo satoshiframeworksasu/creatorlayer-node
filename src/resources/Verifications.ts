@@ -5,6 +5,10 @@ import type {
   VerificationStatus_,
   TapeResponse,
   EligibilityCheck,
+  MonitoredVerificationsResponse,
+  EnrollMonitoringParams,
+  EnrollMonitoringResponse,
+  UnenrollMonitoringResponse,
 } from "../types.js";
 
 export class Verifications {
@@ -108,5 +112,60 @@ export class Verifications {
       `/api/v1/verifications/${verificationId}/tape/pdf`,
     );
     return Buffer.from(await response.arrayBuffer());
+  }
+
+  /**
+   * List all verifications currently enrolled in portfolio monitoring.
+   *
+   * Each row includes `monthly_rate_cents` (billing amount), `baseline_avg_revenue`
+   * (income baseline captured at enrollment), and `last_alert_at`.
+   *
+   * @example
+   * const { monitored } = await cl.verifications.listMonitored();
+   */
+  listMonitored(): Promise<MonitoredVerificationsResponse> {
+    return this.client._request<MonitoredVerificationsResponse>(
+      "GET",
+      "/api/v1/verifications/monitored"
+    );
+  }
+
+  /**
+   * Enroll a completed verification in portfolio monitoring.
+   *
+   * Creatorlayer re-checks the creator's income daily using existing OAuth tokens.
+   * If income drops more than `alert_threshold_pct` (default 20%) below the baseline
+   * captured at enrollment, an alert email is sent to the lender.
+   *
+   * Billed at `monthly_rate_cents` per month while enrolled (default €5.00/month).
+   *
+   * @example
+   * const result = await cl.verifications.enroll(verificationId, { alert_threshold_pct: 20 });
+   * console.log(result.monthly_rate_cents); // 500 = €5.00/month
+   */
+  enroll(
+    verificationId: string,
+    params?: EnrollMonitoringParams
+  ): Promise<EnrollMonitoringResponse> {
+    return this.client._request<EnrollMonitoringResponse>(
+      "POST",
+      `/api/v1/verifications/${verificationId}/monitor`,
+      { body: params ?? {} }
+    );
+  }
+
+  /**
+   * Unenroll a verification from portfolio monitoring.
+   *
+   * Stops daily income re-checks and terminates the recurring billing item.
+   *
+   * @example
+   * await cl.verifications.unenroll(verificationId);
+   */
+  unenroll(verificationId: string): Promise<UnenrollMonitoringResponse> {
+    return this.client._request<UnenrollMonitoringResponse>(
+      "DELETE",
+      `/api/v1/verifications/${verificationId}/monitor`
+    );
   }
 }

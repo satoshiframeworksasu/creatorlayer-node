@@ -68,10 +68,17 @@ export interface CreateVerificationParams {
   lender_name?: string;
   /** Financial product type. Defaults to "rbf" if omitted. */
   product_type?: ProductType;
-  /** Creator email address — pre-fills the consent UI and sends a consent link if provided. */
+  /** Creator email address — pre-fills the consent UI if provided. Creatorlayer does not proactively email the creator; the lender delivers the consent_url through their own channel. */
   creator_email?: string;
   /** ISO 639-1 language code for the consent UI. Defaults to "en". */
   language?: string;
+  /**
+   * Where to redirect the creator after they complete or decline the consent flow.
+   * Must be an https:// URL. The verification_id and status are appended as query
+   * params: `?verification_id=ver_…&status=completed`.
+   * Omit to show the default Creatorlayer success/decline screen instead.
+   */
+  return_url?: string;
   /**
    * Per-verification webhook endpoint. Receives a `verification.completed` event
    * when the creator finishes the consent flow. Overrides the account-level webhook
@@ -99,6 +106,8 @@ export interface VerificationCreated {
   expires_at: string;
   created_at: string;
   lender_id: string;
+  /** Echoed from request if provided. */
+  return_url?: string;
   /** Echoed back from the request if provided. */
   custom_reference?: string;
 }
@@ -263,6 +272,16 @@ export interface RiskTape {
   }>;
 }
 
+/** A platform whose OAuth data is older than the 30-day freshness window. */
+export interface StalePlatform {
+  /** Platform identifier, e.g. "youtube", "twitch", "patreon". */
+  platform: string;
+  /** ISO 8601 timestamp of the last successful OAuth sync for this platform. */
+  last_sync_at: string;
+  /** Days elapsed since last_sync_at at the time of this tape request. */
+  age_days: number;
+}
+
 /** Response envelope for GET /verifications/:id/tape. */
 export interface TapeResponse {
   tape: RiskTape;
@@ -272,6 +291,11 @@ export interface TapeResponse {
    * Null when TAPE_SIGNING_PRIVATE_KEY is not configured on the API server.
    */
   signed_jwt: string | null;
+  /**
+   * Present only when one or more platforms have not been synced within the last 30 days.
+   * The tape is still delivered — this is informational. Absent when all platforms are fresh.
+   */
+  stale_platforms?: StalePlatform[];
 }
 
 /** Response from GET /verifications/:id/eligibility — free, no tape decryption. */
@@ -282,6 +306,51 @@ export interface EligibilityCheck {
   /** Present when tape not yet computed (creator consent may be pending). */
   status?: string;
   note?: string;
+}
+
+// ── Portfolio monitoring ──────────────────────────────────────────────────────
+
+/** A row returned by GET /verifications/monitored. */
+export interface MonitoredTapeRow {
+  verification_id: string;
+  enrolled_at: string;
+  last_checked_at: string | null;
+  last_alert_at: string | null;
+  baseline_avg_revenue: number | null;
+  alert_threshold_pct: number;
+  /** Recurring billing amount in euro cents per month. Default 500 = €5.00. */
+  monthly_rate_cents: number;
+  obligor_reference: string;
+  product_type: ProductType;
+  verification_status: string;
+}
+
+/** Response envelope for GET /verifications/monitored. */
+export interface MonitoredVerificationsResponse {
+  monitored: MonitoredTapeRow[];
+}
+
+/** Parameters for POST /verifications/:id/monitor. */
+export interface EnrollMonitoringParams {
+  /** Income drop (%) that triggers an alert. Default 20. */
+  alert_threshold_pct?: number;
+}
+
+/** Response from POST /verifications/:id/monitor. */
+export interface EnrollMonitoringResponse {
+  enrolled: true;
+  verification_id: string;
+  baseline_avg_revenue: number | null;
+  alert_threshold_pct: number;
+  enrolled_at: string;
+  /** Recurring billing amount in euro cents per month. Default 500 = €5.00. */
+  monthly_rate_cents: number;
+}
+
+/** Response from DELETE /verifications/:id/monitor. */
+export interface UnenrollMonitoringResponse {
+  enrolled: false;
+  verification_id: string;
 }
 
 /** Result of POST /api/v1/risk-tapes/verify. */
@@ -691,6 +760,51 @@ export interface CreatePoolParams {
 
 export interface AddToPoolParams {
   verification_ids: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Consent Sessions
+// ---------------------------------------------------------------------------
+
+export interface CreateConsentSessionParams {
+  /** The verification_id of an existing pending-consent verification. */
+  verification_id: string;
+  /** Display name of your organisation shown to the creator in the consent UI. */
+  lender_name: string;
+  /** Creator email — pre-fills the consent UI if provided. */
+  creator_email?: string;
+  /** ISO 639-1 language code for the consent UI. Defaults to "en". */
+  language?: string;
+  /** ISO 4217 currency code for revenue normalisation. Defaults to "EUR". */
+  payout_currency?: string;
+  /**
+   * Where to redirect the creator after they complete or decline the consent flow.
+   * Must be an https:// URL. The verification_id and status are appended as query
+   * params: `?verification_id=ver_…&status=completed`.
+   */
+  return_url?: string;
+}
+
+export interface ConsentSessionCreated {
+  consent_session_id: string;
+  /** URL to deliver to the creator so they can complete the consent flow. */
+  consent_url: string;
+  /** ISO 8601. Session expires 7 days after creation. */
+  expires_at: string;
+}
+
+export interface ConsentSessionStatus {
+  id: string;
+  status: 'pending' | 'completed' | 'expired' | 'cancelled';
+  lender_name: string;
+  lender_logo: string | null;
+  creator_email: string | null;
+  return_url: string | null;
+  expires_at: string;
+  payout_currency: string;
+  verification_id: string;
+  created_at: string;
+  language: string;
 }
 
 // ---------------------------------------------------------------------------

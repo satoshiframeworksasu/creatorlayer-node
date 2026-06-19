@@ -3,6 +3,7 @@ export type { CreatorlayerOptions } from "./types.js";
 
 // Resources (for advanced use / type augmentation)
 export { Verifications } from "./resources/Verifications.js";
+export { ConsentSessions } from "./resources/ConsentSessions.js";
 export { Benchmarks } from "./resources/Benchmarks.js";
 export { Webhooks } from "./resources/Webhooks.js";
 export { GDPR } from "./resources/GDPR.js";
@@ -41,9 +42,18 @@ export type {
   EligibilityResult,
   Covenant,
   TapeResponse,
+  StalePlatform,
   EligibilityCheck,
+  MonitoredTapeRow,
+  MonitoredVerificationsResponse,
+  EnrollMonitoringParams,
+  EnrollMonitoringResponse,
+  UnenrollMonitoringResponse,
   TapeVerifyResult,
   JwksResponse,
+  CreateConsentSessionParams,
+  ConsentSessionCreated,
+  ConsentSessionStatus,
   BenchmarkMetric,
   Benchmarks as BenchmarksResponse,
   CreateWebhookParams,
