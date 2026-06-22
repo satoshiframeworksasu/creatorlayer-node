@@ -14,7 +14,7 @@ export class Dashboard {
    *
    * @example
    * const stats = await cl.dashboard.stats();
-   * console.log(stats.avg_creator_score);
+   * console.log(stats.risk_tier_distribution);
    */
   stats(): Promise<DashboardStats> {
     return this.client._request<DashboardStats>("GET", "/api/v1/dashboard/stats");
@@ -52,7 +52,7 @@ export class Dashboard {
    *
    * @example
    * const detail = await cl.dashboard.getVerification(verificationId);
-   * console.log(detail.creator_score);
+   * console.log(detail.tape?.risk_profile.avg_monthly_revenue);
    */
   getVerification(verificationId: string): Promise<VerificationDetail> {
     return this.client._request<VerificationDetail>(

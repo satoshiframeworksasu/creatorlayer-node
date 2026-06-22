@@ -3,6 +3,7 @@ import type { Creatorlayer } from "../Creatorlayer.js";
 import type {
   CreateWebhookParams,
   Webhook,
+  WebhookDeliveriesResponse,
   WebhookEventPayload,
 } from "../types.js";
 import { CreatorlayerWebhookSignatureError } from "../errors.js";
@@ -42,6 +43,23 @@ export class Webhooks {
     return this.client._request<void>(
       "DELETE",
       `/api/v1/webhooks/${webhookId}`
+    );
+  }
+
+  /**
+   * Retrieve the delivery log for a webhook endpoint.
+   *
+   * Returns a list of recent delivery attempts, including HTTP status codes,
+   * success/failure flags, and response times.
+   *
+   * @example
+   * const { deliveries } = await cl.webhooks.getDeliveries(webhookId);
+   * const failed = deliveries.filter(d => !d.success);
+   */
+  getDeliveries(webhookId: string): Promise<WebhookDeliveriesResponse> {
+    return this.client._request<WebhookDeliveriesResponse>(
+      "GET",
+      `/api/v1/webhooks/${webhookId}/deliveries`
     );
   }
 

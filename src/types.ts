@@ -422,6 +422,21 @@ export interface WebhookEventPayload {
   reason?: "platform_error" | "consent_revoked" | "timeout";
 }
 
+export interface WebhookDelivery {
+  delivery_id: string;
+  webhook_id: string;
+  event: WebhookEventType;
+  url: string;
+  http_status: number | null;
+  success: boolean;
+  attempted_at: string;
+  duration_ms: number | null;
+}
+
+export interface WebhookDeliveriesResponse {
+  deliveries: WebhookDelivery[];
+}
+
 // ---------------------------------------------------------------------------
 // GDPR
 // ---------------------------------------------------------------------------
@@ -470,7 +485,6 @@ export interface DashboardVerificationSummary {
   obligor_reference: string;
   status: DashboardVerificationStatus;
   risk_tier: RiskTier | null;
-  creator_score: number | null;
   created_at: string;
   completed_at: string | null;
 }
@@ -480,7 +494,6 @@ export interface DashboardStats {
   completed: number;
   pending: number;
   failed: number;
-  avg_creator_score: number | null;
   risk_tier_distribution: {
     prime: number;
     standard: number;
@@ -509,7 +522,6 @@ export interface VerificationDetail {
   created_at: string;
   updated_at: string;
   tape: RiskTape | null;
-  creator_score: number | null;
 }
 
 export interface ListVerificationsParams {
@@ -648,7 +660,6 @@ export interface MarketReport {
   summary: {
     total_creators: number;
     total_revenue_volume: number;
-    avg_creator_score: number;
     avg_volatility: number;
     yoy_growth: number | null;
     top_verticals: TopVertical[];
@@ -672,7 +683,6 @@ export interface GenerateReportParams {
 // ---------------------------------------------------------------------------
 
 export interface PoolCriteria {
-  min_creator_score: number | null;
   max_risk_tier: RiskTier | null;
   min_data_quality: number | null;
   jurisdictions: string[] | null;
