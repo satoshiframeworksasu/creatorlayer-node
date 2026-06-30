@@ -158,7 +158,11 @@ Use `obligor_reference` values starting with `test-` to trigger synthetic flows 
 
 ## Data Residency & GDPR
 
-Creatorlayer is EU-native infrastructure. All API endpoints are hosted within the European Union (France) and no personal data leaves the EU.
+**Data controller**: The lender integrating this SDK is the data controller (GDPR Art. 4(7)) for the credit assessment purpose. SATOSHI FRAMEWORK SASU is a data processor (Art. 28 GDPR) acting on the lender's documented instructions.
+
+**Data location**: All API endpoints are hosted in the EU (Scalingo, France). Two sub-processors are based in the USA: Resend (email delivery) and Sentry (error monitoring) — both governed by EU Standard Contractual Clauses (Art. 46 GDPR). Platform API calls (YouTube, Twitch, TikTok, etc.) are directed to each platform's own infrastructure; those platforms are independent data controllers.
+
+**Data Processing Agreement (DPA)**: Must be executed before your first production API call. Contact hello@satoshiframework.com to initiate the DPA process.
 
 This SDK is a stateless HTTP client — it does not cache, log, or persist any personal data on your infrastructure.
 
@@ -168,8 +172,6 @@ Built-in GDPR data subject rights:
 - `cl.gdpr.export()` — Right to Data Portability (Art. 20)
 
 These methods require a `gdpr_admin` API key. See [GDPR documentation](https://docs.creatorlayer.eu/compliance/soc2-overview) for details.
-
-**Data Processing Agreement**: Available at [docs.creatorlayer.eu/legal/dpa](https://docs.creatorlayer.eu/legal/dpa).
 
 See [LEGAL.md](./LEGAL.md) for full legal notices and sub-processor list.
 

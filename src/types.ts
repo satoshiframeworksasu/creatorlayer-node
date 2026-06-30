@@ -39,9 +39,10 @@ export type ProductType =
   | "rbf"                  // Revenue-Based Financing
   | "revenue_loan"         // Fixed instalment sized off revenue
   | "venture_debt"         // Growth-oriented; tolerates higher volatility
-  | "murabaha"             // Islamic finance — cost-plus sale (AAOIFI standard)
-  | "hpp"                  // Islamic finance — Home Purchase Plan / Diminishing Musharakah
   | "securitization_pool"; // At individual-tape level for securitization pools
+// NOTE: murabaha and hpp (Islamic finance) are implemented in the API but currently
+// deactivated — the API returns 400 for these product types. They are excluded from
+// this public type until re-enabled. See creatorlayer-api CLAUDE.md for details.
 export type VerificationStatus =
   | "pending_creator_consent"
   | "processing"

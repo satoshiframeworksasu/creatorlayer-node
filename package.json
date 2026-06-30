@@ -4,6 +4,9 @@
   "description": "Official Node.js / TypeScript SDK for the Creatorlayer API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "creatorlayer-mcp": "dist/mcp-server.js"
+  },
   "files": [
     "dist"
   ],
@@ -20,10 +23,15 @@
     "creatorlayer",
     "creator-finance",
     "income-verification",
-    "risk-tape"
+    "risk-tape",
+    "mcp",
+    "model-context-protocol"
   ],
   "author": "SATOSHI FRAMEWORK SASU",
   "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
   "devDependencies": {
     "@types/node": "^25.5.0",
     "typescript": "^5.4.0"

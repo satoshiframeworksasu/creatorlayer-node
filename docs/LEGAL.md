@@ -10,27 +10,37 @@ This SDK is distributed under the **MIT License**. See [LICENSE](./LICENSE).
 Société par Actions Simplifiée Unipersonnelle (SASU)
 Registered in France
 
-Contact: hello@creatorlayer.eu
+Contact: hello@satoshiframework.com
 
-## Data Residency & GDPR
+## Data Protection & GDPR
 
-### Data controller
+### Roles under GDPR
 
-When you use the Creatorlayer API via this SDK, the data controller for any personal data processed is:
+**The lender is the data controller** (GDPR Art. 4(7)) for the credit assessment purpose.
+SATOSHI FRAMEWORK SASU operates as a **data processor** (Art. 28 GDPR), processing creator
+personal data solely on the lender's documented instructions and for the purpose of generating
+Risk Tapes for credit assessment.
 
-> **SATOSHI FRAMEWORK SASU**, a company incorporated in France under French law.
+SATOSHI FRAMEWORK SASU is an independent data controller only for its own operational purposes
+(billing, account management, service improvement) — not for the credit assessment data flows
+this SDK facilitates.
 
-The lawful basis for processing creator personal data is **explicit consent** pursuant to GDPR Article 6(1)(a). Consent is collected from the creator through the Creatorlayer consent flow before any data is accessed.
+The lawful basis for processing creator personal data is **explicit consent** pursuant to
+GDPR Article 6(1)(a). Consent is collected from the creator through the Creatorlayer consent
+flow before any data is accessed.
 
-### Data location
+### Data location & transfers
 
-All personal data processed through the Creatorlayer API is stored and processed **exclusively in the EU**:
+| Component | Location | Provider | Safeguard |
+|---|---|---|---|
+| API & PostgreSQL database | France (EU) | Scalingo SAS | — |
+| Redis cache | France (EU) | Scalingo SAS | — |
+| Transactional email | USA | Resend Inc. | EU Standard Contractual Clauses (Art. 46) |
+| Error monitoring | USA | Functional Software, Inc. (Sentry) | EU Standard Contractual Clauses (Art. 46) |
 
-| Component | Location | Provider |
-|---|---|---|
-| API & PostgreSQL database | France | Scalingo SAS |
-| Redis cache | France | Scalingo SAS |
-| Transactional email | USA (SCCs in place) | Resend |
+Platform API calls (YouTube, Twitch, TikTok, Patreon, etc.) are directed to each platform's
+own servers, which may be outside the EU. Each platform is an independent data controller
+authorised directly by the creator — they are not sub-processors of SATOSHI FRAMEWORK SASU.
 
 ### Creator rights
 
@@ -46,18 +56,22 @@ Creators whose data is processed via the API retain the following rights under G
 
 ### Lender obligations
 
-If you are a regulated lender using this SDK, you may be acting as a **joint controller** or **independent controller** for personal data received via the Risk Tape. You are responsible for:
+As data controller, the lender integrating this SDK is responsible for:
 
-- Maintaining your own legal basis for processing creator data received from Creatorlayer
-- Executing the Creatorlayer **Data Processing Agreement (DPA)** — contact hello@creatorlayer.eu
+- Maintaining a valid legal basis for processing creator data received from Creatorlayer
+- Executing the Creatorlayer **Data Processing Agreement (DPA)** before the first production
+  API call — contact hello@satoshiframework.com
+- Honouring creator rights requests within statutory deadlines
+- Notifying SATOSHI FRAMEWORK SASU of any personal data breach affecting Risk Tape data
 - Complying with applicable regulations (GDPR, DORA, EBA Outsourcing Guidelines, etc.)
-- Notifying your competent supervisory authority of any material outsourcing arrangement
 
-### DPA and sub-processors
+### Data Processing Agreement
 
-A full Data Processing Agreement is available on request. Current sub-processors are listed in the [Creatorlayer compliance documentation](https://docs.creatorlayer.eu/compliance/soc2-overview).
+A Data Processing Agreement (DPA) must be in place before your first production API call.
+The DPA establishes the lender's obligations as data controller and SATOSHI FRAMEWORK SASU's
+obligations as data processor under Art. 28 GDPR.
 
-Contact **hello@creatorlayer.eu** to request the DPA.
+Contact **hello@satoshiframework.com** to initiate the DPA process.
 
 ## Third-Party Notices
 

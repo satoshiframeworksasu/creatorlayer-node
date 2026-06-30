@@ -6,6 +6,36 @@ import type {
   GDPRExportResponse,
 } from "../types.js";
 
+export interface GDPRWithdrawConsentParams {
+  session_id: string;
+  creator_email: string;
+}
+
+export interface GDPRWithdrawConsentResponse {
+  ok: boolean;
+  sessions_withdrawn: number;
+}
+
+export interface GDPRWithdrawalRequestParams {
+  email: string;
+}
+
+export interface GDPRWithdrawalRequestResponse {
+  ok: boolean;
+  message: string;
+}
+
+export interface GDPRWithdrawalConfirmParams {
+  token: string;
+}
+
+export interface GDPRWithdrawalConfirmResponse {
+  ok: boolean;
+  sessions_withdrawn: number;
+  withdrawal_at: string;
+  lender_names: string[];
+}
+
 export class GDPR {
   constructor(private readonly client: Creatorlayer) {}
 
@@ -57,6 +87,52 @@ export class GDPR {
       "GET",
       "/api/v1/gdpr/export",
       { query }
+    );
+  }
+
+  /**
+   * Withdraw consent for a specific session by session ID and creator email.
+   * No authentication required — the session UUID + creator email act as capability tokens.
+   *
+   * @example
+   * await cl.gdpr.withdrawConsent({ session_id: "...", creator_email: "creator@example.com" });
+   */
+  withdrawConsent(params: GDPRWithdrawConsentParams): Promise<GDPRWithdrawConsentResponse> {
+    return this.client._request<GDPRWithdrawConsentResponse>(
+      "POST",
+      "/api/v1/gdpr/withdraw-consent",
+      { body: params }
+    );
+  }
+
+  /**
+   * Request a single-use withdrawal link via email. The creator enters their email
+   * and receives a link valid for 72 hours. No authentication required.
+   *
+   * @example
+   * await cl.gdpr.requestWithdrawalLink({ email: "creator@example.com" });
+   */
+  requestWithdrawalLink(params: GDPRWithdrawalRequestParams): Promise<GDPRWithdrawalRequestResponse> {
+    return this.client._request<GDPRWithdrawalRequestResponse>(
+      "POST",
+      "/api/v1/gdpr/withdrawal-request",
+      { body: params }
+    );
+  }
+
+  /**
+   * Confirm a withdrawal using the single-use token from the email link.
+   * Atomically withdraws all active consent sessions for the creator.
+   *
+   * @example
+   * const result = await cl.gdpr.confirmWithdrawal({ token: "..." });
+   * console.log(`Withdrew ${result.sessions_withdrawn} session(s)`);
+   */
+  confirmWithdrawal(params: GDPRWithdrawalConfirmParams): Promise<GDPRWithdrawalConfirmResponse> {
+    return this.client._request<GDPRWithdrawalConfirmResponse>(
+      "POST",
+      "/api/v1/gdpr/withdrawal-confirm",
+      { body: params }
     );
   }
 }

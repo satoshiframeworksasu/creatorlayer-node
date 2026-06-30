@@ -7,12 +7,25 @@ export { ConsentSessions } from "./resources/ConsentSessions.js";
 export { Benchmarks } from "./resources/Benchmarks.js";
 export { Webhooks } from "./resources/Webhooks.js";
 export { GDPR } from "./resources/GDPR.js";
+export type {
+  GDPRWithdrawConsentParams, GDPRWithdrawConsentResponse,
+  GDPRWithdrawalRequestParams, GDPRWithdrawalRequestResponse,
+  GDPRWithdrawalConfirmParams, GDPRWithdrawalConfirmResponse,
+} from "./resources/GDPR.js";
 export { Dashboard } from "./resources/Dashboard.js";
 export { Usage } from "./resources/Usage.js";
 export { EconomyIndex } from "./resources/EconomyIndex.js";
-export { Intelligence } from "./resources/Intelligence.js";
+// Intelligence class intentionally not exported — pending post-pilot legal analysis
+// (Deshoulières Avocats, Jun 2026). Re-enable after clearance.
 export { Securitization } from "./resources/Securitization.js";
 export { RiskTapes } from "./resources/RiskTapes.js";
+export { DataRoom } from "./resources/DataRoom.js";
+export type { DataRoomGateParams, DataRoomGateResponse, DataRoomDocument } from "./resources/DataRoom.js";
+export { Pools } from "./resources/Pools.js";
+export type { Pool, PoolsListResponse, PoolsReportResponse, PoolDimensionResponse, StratificationDimension } from "./resources/Pools.js";
+
+// MCP server
+export { runMcpServer } from "./mcp.js";
 
 // Errors
 export {
@@ -79,17 +92,6 @@ export type {
   CreatorIndex,
   IndexHistoryResponse,
   IndexComponentsResponse,
-  // Intelligence
-  ReportPeriod,
-  ReportFilters,
-  MarketReportSummary,
-  TopVertical,
-  SegmentAnalysis,
-  TrendPoint,
-  TrendData,
-  MarketReport,
-  ListReportsResponse,
-  GenerateReportParams,
   // Securitization
   PoolCriteria,
   SecuritizationPool,
