@@ -3,33 +3,39 @@
 // ---------------------------------------------------------------------------
 
 /**
- * Supported creator platforms for income verification.
+ * Revenue platform types. Only these platforms contribute to income
+ * verification and Risk Tape cashflow data.
  *
- * Revenue platforms (verified_revenue):
+ * verified_revenue (direct API revenue data):
  *   adsense, stripe, shopify, etsy, gumroad, sellfy, paddle
- *   amazon — verified_revenue when connected via SP-API; audience_only otherwise
+ *   amazon — verified_revenue when connected via SP-API
  *
- * Revenue platforms (strong_proxy — estimated, no direct revenue API):
+ * strong_proxy (estimated from subscription/engagement signals):
  *   twitch, patreon
  *
- * Audience-only platforms (ND3 — connected via OAuth, no revenue API):
- *   youtube, tiktok, meta, twitter, pinterest, reddit, linkedin, snapchat, discord
- *
- * No public API (ND4 — consent captured, no data fetchable):
- *   substack, medium, telegram, bluesky, vinted
+ * analytics (revenue data via analytics API):
+ *   youtube — YouTube Analytics API
  */
 export type Platform =
   // Revenue platforms (verified_revenue)
   | "adsense" | "stripe" | "shopify" | "etsy" | "gumroad" | "sellfy" | "paddle" | "amazon"
   // Revenue platforms (strong_proxy)
   | "twitch" | "patreon"
-  // Audience-only (ND3 — no revenue API)
-  | "youtube" | "tiktok" | "meta" | "twitter" | "pinterest" | "reddit"
-  | "linkedin" | "snapchat" | "discord"
-  // No public API (ND4)
-  | "substack" | "medium" | "telegram" | "bluesky" | "vinted"
+  // Revenue platforms (analytics)
+  | "youtube"
   // Catch-all for unlisted platforms that may appear in Risk Tape output
   | "other";
+
+/**
+ * Audience-only platform types. These platforms are currently deactivated.
+ * When reintroduced, their connections will appear in the `audience_connections`
+ * field on the Risk Tape — not in `platform_connections`.
+ */
+export type AudiencePlatformType =
+  | "tiktok" | "meta" | "twitter" | "pinterest" | "reddit"
+  | "linkedin" | "snapchat" | "discord"
+  | "substack" | "medium" | "telegram" | "bluesky" | "vinted";
+
 /**
  * Financial product type. Drives eligibility dispatcher routing.
  * All types are accepted by POST /api/v1/verifications.
@@ -130,6 +136,27 @@ export interface VerificationStatus_ {
 // Risk Tape
 // ---------------------------------------------------------------------------
 
+/**
+ * A single audience-platform connection associated with a creator.
+ * Audience connections carry social/reach signals but do not contribute
+ * to cashflow or eligibility calculations.
+ */
+export interface AudienceConnection {
+  platform: AudiencePlatformType;
+  handle_or_channel_id?: string | null;
+  /** Primary audience signal: total follower or subscriber count. */
+  follower_count?: number | null;
+  /** Whether the creator holds a platform verification badge. */
+  profile_verified?: boolean | null;
+  oauth_scope?: string | null;
+  consent_status?: "active" | "revoked" | "expired" | "not_required";
+  first_sync_at: string;
+  last_sync_at: string;
+  account_created_date?: string | null;
+  nd_code?: string;
+  platform_data?: Record<string, unknown>;
+}
+
 /** Machine-readable covenant attached to an eligibility decision. */
 export interface Covenant {
   code: string;
@@ -188,14 +215,12 @@ export interface RiskTape {
   platform_connections: Array<{
     platform: Platform;
     handle_or_channel_id?: string | null;
-    role: "revenue" | "audience";
     /**
      * verified_revenue — direct API revenue data.
      * strong_proxy     — estimated from engagement/subscription signals.
-     * audience_only    — identity/audience signal only; no revenue contribution.
      * fx_excluded      — revenue fetched but ECB normalisation unavailable.
      */
-    data_quality: "verified_revenue" | "strong_proxy" | "audience_only" | "fx_excluded";
+    data_quality: "verified_revenue" | "strong_proxy" | "fx_excluded";
     consent_status: "active" | "revoked" | "expired";
     first_sync_at: string;
     last_sync_at: string;
@@ -203,6 +228,10 @@ export interface RiskTape {
     nd_code?: NDCode | null;
     platform_data?: Record<string, unknown> | null;
   }>;
+  /**
+   * Present only when audience platforms are connected. Absent when none are connected.
+   */
+  audience_connections?: AudienceConnection[];
   cashflow_summary: {
     currency: string;
     track_record_months: number;

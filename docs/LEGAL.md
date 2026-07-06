@@ -38,7 +38,7 @@ flow before any data is accessed.
 | Transactional email | USA | Resend Inc. | EU Standard Contractual Clauses (Art. 46) |
 | Error monitoring | USA | Functional Software, Inc. (Sentry) | EU Standard Contractual Clauses (Art. 46) |
 
-Platform API calls (YouTube, Twitch, TikTok, Patreon, etc.) are directed to each platform's
+Platform API calls (YouTube, Twitch, Shopify, Etsy, Amazon, etc.) are directed to each platform's
 own servers, which may be outside the EU. Each platform is an independent data controller
 authorised directly by the creator — they are not sub-processors of SATOSHI FRAMEWORK SASU.
 
