@@ -43,6 +43,7 @@ export {
 // Types
 export type {
   Platform,
+  AudiencePlatformType,
   ProductType,
   VerificationStatus,
   RiskTier,
@@ -52,6 +53,7 @@ export type {
   VerificationCreated,
   VerificationStatus_ as VerificationStatusResponse,
   RiskTape,
+  AudienceConnection,
   EligibilityResult,
   Covenant,
   TapeResponse,

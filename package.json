@@ -1,9 +1,15 @@
 {
   "name": "creatorlayer",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Official Node.js / TypeScript SDK for the Creatorlayer API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "bin": {
     "creatorlayer-mcp": "dist/mcp-server.js"
   },
@@ -34,6 +40,6 @@
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.9.3"
   }
 }
