@@ -277,11 +277,10 @@ export interface RiskTape {
    * Null when all platforms reported EUR natively or when ECB rates were unavailable.
    */
   fx_context?: {
-    as_of_date: string;
-    rate_source: string;
+    rates_date: string;
+    rates_source: "ecb";
     converted_platforms: Array<{ platform: string; original_currency: string }>;
     rates_applied: Record<string, number>;
-    excluded_platforms?: string[];
   } | null;
   /** Present on murabaha and hpp tapes only. */
   islamic_compliance?: {
@@ -291,14 +290,18 @@ export interface RiskTape {
     screened_at: string;
   } | null;
   jurisdiction_profile?: {
-    jurisdiction: string;
-    data_protection_regime: string;
-    gdpr_applies: boolean;
+    regime: "eu_gdpr" | "uk_gdpr" | "other";
+    controller_jurisdiction: string;
+    dpa_version?: string | null;
+    regime_note?: string | null;
   } | null;
   overlay_blocks?: Array<{
-    provider: string;
-    block_type: string;
-    data: Record<string, unknown>;
+    overlay_id: string;
+    overlay_type: "sharia_screening" | "credit_bureau" | "kyb" | "aml" | "custom";
+    submitted_by: string;
+    submitted_at: string;
+    payload: Record<string, unknown>;
+    summary?: string | null;
   }>;
 }
 
