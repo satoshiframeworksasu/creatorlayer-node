@@ -12,8 +12,12 @@ export interface GDPRWithdrawConsentParams {
 }
 
 export interface GDPRWithdrawConsentResponse {
-  ok: boolean;
-  sessions_withdrawn: number;
+  success: true;
+  message: string;
+  session_id: string;
+  withdrawal_at: string;
+  oauth_revoked_platforms: string[];
+  oauth_pending_revocation: string[];
 }
 
 export interface GDPRWithdrawalRequestParams {
@@ -22,7 +26,6 @@ export interface GDPRWithdrawalRequestParams {
 
 export interface GDPRWithdrawalRequestResponse {
   ok: boolean;
-  message: string;
 }
 
 export interface GDPRWithdrawalConfirmParams {
@@ -74,10 +77,12 @@ export class GDPR {
 
   /**
    * Export all data for a creator in a portable format (GDPR Art. 20).
+   * Returns the full data inline as a JSON attachment.
    * Requires a `gdpr_admin` API key.
    *
    * @example
-   * const { export_url } = await cl.gdpr.export({ email: "creator@example.com" });
+   * const data = await cl.gdpr.export({ email: "creator@example.com" });
+   * console.log(data.export_generated_at, data.verifications);
    */
   export(params: GDPRLookup): Promise<GDPRExportResponse> {
     const query: Record<string, string> = {};

@@ -481,23 +481,52 @@ export interface GDPRLookup {
 }
 
 export interface GDPRAccessResponse {
-  email: string | null;
-  obligor_id: string | null;
-  verifications: Array<{
-    verification_id: string;
-    created_at: string;
-    platforms: Platform[];
+  consents: Array<{
+    session_id: string;
+    consent_given_at: string;
+    status: string;
+    platform?: string;
   }>;
 }
 
 export interface GDPREraseResponse {
-  erased: true;
-  erased_at: string;
+  status: 'deleted';
 }
 
 export interface GDPRExportResponse {
-  export_url: string;
-  expires_at: string;
+  export_generated_at: string;
+  account: {
+    obligor_id: string;
+    email: string;
+    created_at: string;
+  };
+  verifications: Array<{
+    verification_id: string;
+    product_type: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+  }>;
+  platform_connections: Array<{
+    platform: string;
+    connected_at: string;
+    status: string;
+  }>;
+  typology: Record<string, unknown> | null;
+  consents: Array<{
+    session_id: string;
+    consent_given_at: string;
+    status: string;
+  }>;
+  gdpr_audit_log: Array<{
+    event: string;
+    timestamp: string;
+    actor: string;
+  }>;
+  risk_tapes: Array<{
+    verification_id: string;
+    generated_at: string;
+  }>;
 }
 
 // ---------------------------------------------------------------------------
@@ -721,6 +750,20 @@ export interface PoolCriteria {
   jurisdictions: string[] | null;
   verticals: string[] | null;
   min_track_record_months: number | null;
+  finance_classes: Array<'conventional' | 'islamic'> | null;
+}
+
+export interface AddOverlayParams {
+  overlay_type: 'sharia_screening' | 'credit_bureau' | 'kyb' | 'aml' | 'custom';
+  data: Record<string, unknown>;
+  source?: string;
+}
+
+export interface AddOverlayResponse {
+  overlay_id: string;
+  verification_id: string;
+  overlay_type: string;
+  created_at: string;
 }
 
 export interface SecuritizationPool {
@@ -837,8 +880,7 @@ export interface ConsentSessionCreated {
 }
 
 export interface ConsentSessionStatus {
-  id: string;
-  status: 'pending' | 'completed' | 'expired' | 'cancelled';
+  status: 'pending' | 'processing' | 'completed' | 'expired' | 'cancelled';
   lender_name: string;
   lender_logo: string | null;
   creator_email: string | null;

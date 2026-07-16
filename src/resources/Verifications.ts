@@ -9,6 +9,8 @@ import type {
   EnrollMonitoringParams,
   EnrollMonitoringResponse,
   UnenrollMonitoringResponse,
+  AddOverlayParams,
+  AddOverlayResponse,
 } from "../types.js";
 
 export class Verifications {
@@ -166,6 +168,27 @@ export class Verifications {
     return this.client._request<UnenrollMonitoringResponse>(
       "DELETE",
       `/api/v1/verifications/${verificationId}/monitor`
+    );
+  }
+
+  /**
+   * Attach a third-party data overlay to a Risk Tape.
+   *
+   * Overlays augment the tape with external data such as sharia screening
+   * results, credit bureau reports, KYB records, AML checks, or custom data.
+   *
+   * @example
+   * const overlay = await cl.verifications.addOverlay(verificationId, {
+   *   overlay_type: "kyb",
+   *   data: { company_name: "Acme Ltd", registered: true },
+   *   source: "companies_house",
+   * });
+   */
+  addOverlay(verificationId: string, params: AddOverlayParams): Promise<AddOverlayResponse> {
+    return this.client._request<AddOverlayResponse>(
+      "POST",
+      `/api/v1/verifications/${verificationId}/overlays`,
+      { body: params }
     );
   }
 }
