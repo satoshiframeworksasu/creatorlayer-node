@@ -18,7 +18,9 @@ import { GDPR } from "./resources/GDPR.js";
 import { Dashboard } from "./resources/Dashboard.js";
 import { Usage } from "./resources/Usage.js";
 import { EconomyIndex } from "./resources/EconomyIndex.js";
-import { Securitization } from "./resources/Securitization.js";
+// Securitization intentionally not imported — product stage 3, pending loan outcomes
+// track record. Re-enable import and client property after FEATURE_SECURITIZATION_ENABLED
+// is activated in production.
 import { RiskTapes } from "./resources/RiskTapes.js";
 import { DataRoom } from "./resources/DataRoom.js";
 import { Pools } from "./resources/Pools.js";
@@ -47,7 +49,6 @@ export class Creatorlayer {
   readonly dashboard: Dashboard;
   readonly usage: Usage;
   readonly economyIndex: EconomyIndex;
-  readonly securitization: Securitization;
   readonly dataRoom: DataRoom;
   readonly pools: Pools;
 
@@ -76,7 +77,6 @@ export class Creatorlayer {
     this.dashboard = new Dashboard(this);
     this.usage = new Usage(this);
     this.economyIndex = new EconomyIndex(this);
-    this.securitization = new Securitization(this);
     this.dataRoom = new DataRoom(this);
     this.pools = new Pools(this);
   }

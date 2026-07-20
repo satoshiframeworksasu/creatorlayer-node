@@ -17,7 +17,9 @@ export { Usage } from "./resources/Usage.js";
 export { EconomyIndex } from "./resources/EconomyIndex.js";
 // Intelligence class intentionally not exported — pending post-pilot legal analysis
 // (Deshoulières Avocats, Jun 2026). Re-enable after clearance.
-export { Securitization } from "./resources/Securitization.js";
+// Securitization intentionally not exported — product stage 3, pending loan outcomes
+// track record (mirrors Intelligence gate). Re-enable after FEATURE_SECURITIZATION_ENABLED
+// is activated in production.
 export { RiskTapes } from "./resources/RiskTapes.js";
 export { DataRoom } from "./resources/DataRoom.js";
 export type { DataRoomGateParams, DataRoomGateResponse, DataRoomDocument } from "./resources/DataRoom.js";
