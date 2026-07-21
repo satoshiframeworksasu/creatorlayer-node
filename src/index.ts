@@ -27,6 +27,7 @@ export { Pools } from "./resources/Pools.js";
 export type { Pool, PoolsListResponse, PoolsReportResponse, PoolDimensionResponse, StratificationDimension } from "./resources/Pools.js";
 export { LenderThresholdsResource } from "./resources/LenderThresholds.js";
 export type { LenderThresholds, LenderThresholdsResponse, LenderThresholdHistoryEntry, LenderThresholdHistoryResponse } from "./types.js";
+export { LenderProfile } from "./resources/LenderProfile.js";
 
 // MCP server
 export { runMcpServer } from "./mcp.js";
@@ -68,6 +69,8 @@ export type {
   EnrollMonitoringParams,
   EnrollMonitoringResponse,
   UnenrollMonitoringResponse,
+  PatchMonitorParams,
+  PatchMonitorResponse,
   TapeVerifyResult,
   JwksResponse,
   CreateConsentSessionParams,
@@ -98,6 +101,16 @@ export type {
   CreatorIndex,
   IndexHistoryResponse,
   IndexComponentsResponse,
+  // Lender self-service
+  LenderProfileResponse,
+  PatchLenderProfileParams,
+  IpAllowlistEntry,
+  IpAllowlistResponse,
+  AddIpAllowlistParams,
+  RotateApiKeyResponse,
+  DpaResponse,
+  DpaAcceptParams,
+  DpaAcceptResponse,
   // Securitization
   PoolCriteria,
   SecuritizationPool,

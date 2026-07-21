@@ -9,6 +9,8 @@ import type {
   EnrollMonitoringParams,
   EnrollMonitoringResponse,
   UnenrollMonitoringResponse,
+  PatchMonitorParams,
+  PatchMonitorResponse,
   AddOverlayParams,
   AddOverlayResponse,
 } from "../types.js";
@@ -168,6 +170,30 @@ export class Verifications {
     return this.client._request<UnenrollMonitoringResponse>(
       "DELETE",
       `/api/v1/verifications/${verificationId}/monitor`
+    );
+  }
+
+  /**
+   * Update the alert threshold for an enrolled monitoring verification,
+   * without resetting the income baseline.
+   *
+   * Use this when you want to tighten or relax the alert sensitivity after
+   * enrollment. The baseline and enrollment date are preserved.
+   *
+   * @example
+   * const result = await cl.verifications.patchMonitor(verificationId, {
+   *   alert_threshold_pct: 30,
+   * });
+   * console.log(result.alert_threshold_pct); // 30
+   */
+  patchMonitor(
+    verificationId: string,
+    params: PatchMonitorParams
+  ): Promise<PatchMonitorResponse> {
+    return this.client._request<PatchMonitorResponse>(
+      "PATCH",
+      `/api/v1/verifications/${verificationId}/monitor`,
+      { body: params }
     );
   }
 

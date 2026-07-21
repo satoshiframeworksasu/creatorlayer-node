@@ -45,10 +45,9 @@ export type ProductType =
   | "rbf"                  // Revenue-Based Financing
   | "revenue_loan"         // Fixed instalment sized off revenue
   | "venture_debt"         // Growth-oriented; tolerates higher volatility
-  | "securitization_pool"; // At individual-tape level for securitization pools
-// NOTE: murabaha and hpp (Islamic finance) are implemented in the API but currently
-// deactivated — the API returns 400 for these product types. They are excluded from
-// this public type until re-enabled. See creatorlayer-api CLAUDE.md for details.
+  | "securitization_pool"  // At individual-tape level for securitization pools
+  | "murabaha"             // Islamic finance — cost-plus sale structure
+  | "hpp";                 // Islamic finance — hire-purchase plan (diminishing musharakah)
 export type VerificationStatus =
   | "pending_creator_consent"
   | "processing"
@@ -911,6 +910,48 @@ export interface LenderThresholds {
   max_advance_multiple_prime?: number;
   /** Max advance as a multiple of annual avg revenue — standard tier (default: 0.25) */
   max_advance_multiple_standard?: number;
+  /** RBF: max revenue share % — prime tier */
+  rbf_max_revenue_share_pct_prime?: number;
+  /** RBF: max revenue share % — standard tier */
+  rbf_max_revenue_share_pct_standard?: number;
+  /** RBF: max payback cap multiple — prime tier */
+  rbf_payback_cap_multiple_prime?: number;
+  /** RBF: max payback cap multiple — standard tier */
+  rbf_payback_cap_multiple_standard?: number;
+  /** Max tenor in months — prime tier */
+  max_tenor_months_prime?: number;
+  /** Max tenor in months — standard tier */
+  max_tenor_months_standard?: number;
+  /** Islamic products: minimum track record months override */
+  islamic_min_track_record_months?: number;
+  /** Islamic products: maximum acceptable dispute rate for sharia eligibility */
+  sharia_max_dispute_rate?: number;
+  /** Whether the revenue floor covenant is applied */
+  revenue_floor_covenant_enabled?: boolean;
+  /** Revenue floor covenant trigger threshold (fraction of baseline, e.g. 0.7 = 70%) */
+  revenue_floor_covenant_threshold?: number;
+  /** Window in months over which the revenue floor is measured */
+  revenue_floor_covenant_window_months?: number;
+  /** Platform concentration covenant trigger threshold (HHI or share fraction) */
+  platform_concentration_covenant_threshold?: number;
+  /** Minimum number of platforms required before concentration covenant fires */
+  platform_concentration_min_count?: number;
+  /** Data quality score below which a tape is ineligible (default: 20) */
+  dq_ineligible_cap?: number;
+  /** Data quality score below which prime tier is capped to standard (default: 40) */
+  dq_standard_cap?: number;
+  /** Platform dependency flag trigger threshold (top-platform share fraction, e.g. 0.9) */
+  platform_dependency_flag_threshold?: number;
+  /** High platform concentration index flag trigger threshold */
+  high_pci_flag_threshold?: number;
+  /** Venture debt: whether warrant coverage covenant is included */
+  venture_debt_include_warrant_covenant?: boolean;
+  /** Venture debt: whether the growth bonus advance multiple is enabled */
+  venture_debt_growth_bonus_enabled?: boolean;
+  /** Venture debt: YoY growth % threshold to qualify for the bonus advance multiple */
+  venture_debt_growth_bonus_threshold_pct?: number;
+  /** Venture debt: bonus advance multiple applied when growth threshold is met */
+  venture_debt_growth_bonus_advance_multiple?: number;
   /** Additional lender-specific covenants appended to the default list */
   custom_covenants?: string[];
 }
@@ -934,6 +975,92 @@ export interface LenderThresholdHistoryEntry {
 
 export interface LenderThresholdHistoryResponse {
   history: LenderThresholdHistoryEntry[];
+}
+
+// ---------------------------------------------------------------------------
+// Lender self-service
+// ---------------------------------------------------------------------------
+
+/** Response from GET /api/v1/lender/profile. */
+export interface LenderProfileResponse {
+  lender_id: string;
+  company_name: string;
+  contact_email: string;
+  webhook_url: string | null;
+  plan_tier: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Body for PATCH /api/v1/lender/profile. */
+export interface PatchLenderProfileParams {
+  company_name?: string;
+  contact_email?: string;
+  webhook_url?: string | null;
+}
+
+/** A single IP allowlist entry. */
+export interface IpAllowlistEntry {
+  id: string;
+  cidr: string;
+  label: string | null;
+  created_at: string;
+}
+
+/** Response from GET /api/v1/lender/ip-allowlist. */
+export interface IpAllowlistResponse {
+  entries: IpAllowlistEntry[];
+}
+
+/** Body for POST /api/v1/lender/ip-allowlist. */
+export interface AddIpAllowlistParams {
+  /** CIDR notation, e.g. "203.0.113.42/32" or "10.0.0.0/8". */
+  cidr: string;
+  /** Human-readable label for this entry. */
+  label?: string;
+}
+
+/** Response from POST /api/v1/lender/api-keys/rotate. */
+export interface RotateApiKeyResponse {
+  api_key: string;
+  rotated_at: string;
+}
+
+/** Response from GET /api/v1/lender/dpa. */
+export interface DpaResponse {
+  current_version: string;
+  accepted_version: string | null;
+  accepted_at: string | null;
+  acceptance_required: boolean;
+}
+
+/** Body for POST /api/v1/lender/dpa/accept. */
+export interface DpaAcceptParams {
+  /** DPA version string being accepted, e.g. "1.0". */
+  version: string;
+}
+
+/** Response from POST /api/v1/lender/dpa/accept. */
+export interface DpaAcceptResponse {
+  accepted: true;
+  version: string;
+  accepted_at: string;
+}
+
+// ── Portfolio monitoring (patch) ──────────────────────────────────────────────
+
+/** Body for PATCH /api/v1/verifications/:id/monitor. */
+export interface PatchMonitorParams {
+  /** Income drop (%) that triggers an alert. */
+  alert_threshold_pct: number;
+}
+
+/** Response from PATCH /api/v1/verifications/:id/monitor. */
+export interface PatchMonitorResponse {
+  verification_id: string;
+  alert_threshold_pct: number;
+  baseline_avg_revenue: number | null;
+  enrolled_at: string;
 }
 
 // ---------------------------------------------------------------------------

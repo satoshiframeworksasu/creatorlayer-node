@@ -25,6 +25,7 @@ import { RiskTapes } from "./resources/RiskTapes.js";
 import { DataRoom } from "./resources/DataRoom.js";
 import { Pools } from "./resources/Pools.js";
 import { LenderThresholdsResource } from "./resources/LenderThresholds.js";
+import { LenderProfile } from "./resources/LenderProfile.js";
 
 const PRODUCTION_URL = "https://api.creatorlayer.eu";
 const SANDBOX_URL = "https://api-sandbox.creatorlayer.eu";
@@ -53,6 +54,7 @@ export class Creatorlayer {
   readonly dataRoom: DataRoom;
   readonly pools: Pools;
   readonly lenderThresholds: LenderThresholdsResource;
+  readonly lenderProfile: LenderProfile;
 
   private readonly apiKey: string;
   private readonly baseUrl: string;
@@ -82,6 +84,7 @@ export class Creatorlayer {
     this.dataRoom = new DataRoom(this);
     this.pools = new Pools(this);
     this.lenderThresholds = new LenderThresholdsResource(this);
+    this.lenderProfile = new LenderProfile(this);
   }
 
   // ---------------------------------------------------------------------------
