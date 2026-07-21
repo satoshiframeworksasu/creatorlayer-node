@@ -45,9 +45,9 @@ export type ProductType =
   | "rbf"                  // Revenue-Based Financing
   | "revenue_loan"         // Fixed instalment sized off revenue
   | "venture_debt"         // Growth-oriented; tolerates higher volatility
-  | "securitization_pool"  // At individual-tape level for securitization pools
-  | "murabaha"             // Islamic finance — cost-plus sale structure
-  | "hpp";                 // Islamic finance — hire-purchase plan (diminishing musharakah)
+  | "securitization_pool"; // At individual-tape level for securitization pools
+// murabaha and hpp (Islamic finance) are implemented in the engine but deactivated
+// at pilot launch. Re-enable by adding them to the API Zod enum and this union.
 export type VerificationStatus =
   | "pending_creator_consent"
   | "processing"
