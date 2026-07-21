@@ -893,6 +893,50 @@ export interface ConsentSessionStatus {
 }
 
 // ---------------------------------------------------------------------------
+// Lender thresholds
+// ---------------------------------------------------------------------------
+
+export interface LenderThresholds {
+  /** Minimum months of track record required (default: 6) */
+  min_track_record_months?: number;
+  /** Prime tier: max volatility CV (default: 0.25) */
+  prime_max_cv?: number;
+  /** Prime tier: max drawdown % (default: 0.40) */
+  prime_max_drawdown?: number;
+  /** Standard tier: max volatility CV (default: 0.50) */
+  standard_max_cv?: number;
+  /** Standard tier: max drawdown % (default: 0.60) */
+  standard_max_drawdown?: number;
+  /** Max advance as a multiple of annual avg revenue — prime tier (default: 0.35) */
+  max_advance_multiple_prime?: number;
+  /** Max advance as a multiple of annual avg revenue — standard tier (default: 0.25) */
+  max_advance_multiple_standard?: number;
+  /** Additional lender-specific covenants appended to the default list */
+  custom_covenants?: string[];
+}
+
+export interface LenderThresholdsResponse {
+  /** Platform-wide reference policy (read-only). */
+  defaults: Required<LenderThresholds>;
+  /** Fields this lender has overridden. Empty object when using all defaults. */
+  overrides: LenderThresholds;
+  /** Merged result: what is applied on every eligibility decision. */
+  effective: Required<LenderThresholds>;
+}
+
+export interface LenderThresholdHistoryEntry {
+  id: number;
+  thresholds: LenderThresholds;
+  previous_thresholds: LenderThresholds | null;
+  changed_at: string;
+  client_ip: string | null;
+}
+
+export interface LenderThresholdHistoryResponse {
+  history: LenderThresholdHistoryEntry[];
+}
+
+// ---------------------------------------------------------------------------
 // Client configuration
 // ---------------------------------------------------------------------------
 

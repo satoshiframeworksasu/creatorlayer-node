@@ -24,6 +24,7 @@ import { EconomyIndex } from "./resources/EconomyIndex.js";
 import { RiskTapes } from "./resources/RiskTapes.js";
 import { DataRoom } from "./resources/DataRoom.js";
 import { Pools } from "./resources/Pools.js";
+import { LenderThresholdsResource } from "./resources/LenderThresholds.js";
 
 const PRODUCTION_URL = "https://api.creatorlayer.eu";
 const SANDBOX_URL = "https://api-sandbox.creatorlayer.eu";
@@ -51,6 +52,7 @@ export class Creatorlayer {
   readonly economyIndex: EconomyIndex;
   readonly dataRoom: DataRoom;
   readonly pools: Pools;
+  readonly lenderThresholds: LenderThresholdsResource;
 
   private readonly apiKey: string;
   private readonly baseUrl: string;
@@ -79,6 +81,7 @@ export class Creatorlayer {
     this.economyIndex = new EconomyIndex(this);
     this.dataRoom = new DataRoom(this);
     this.pools = new Pools(this);
+    this.lenderThresholds = new LenderThresholdsResource(this);
   }
 
   // ---------------------------------------------------------------------------

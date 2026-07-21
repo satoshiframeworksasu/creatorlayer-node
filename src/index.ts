@@ -25,6 +25,8 @@ export { DataRoom } from "./resources/DataRoom.js";
 export type { DataRoomGateParams, DataRoomGateResponse, DataRoomDocument } from "./resources/DataRoom.js";
 export { Pools } from "./resources/Pools.js";
 export type { Pool, PoolsListResponse, PoolsReportResponse, PoolDimensionResponse, StratificationDimension } from "./resources/Pools.js";
+export { LenderThresholdsResource } from "./resources/LenderThresholds.js";
+export type { LenderThresholds, LenderThresholdsResponse, LenderThresholdHistoryEntry, LenderThresholdHistoryResponse } from "./types.js";
 
 // MCP server
 export { runMcpServer } from "./mcp.js";
