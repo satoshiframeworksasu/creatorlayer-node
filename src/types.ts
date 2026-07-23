@@ -59,9 +59,9 @@ export type NDCode = "ND1" | "ND2" | "ND3" | "ND4";
 export type WebhookEventType =
   | "verification.completed"
   | "verification.failed"
-  | "verification.expired"
   | "tape.updated"
-  | "consent.revoked";
+  | "consent.revoked"
+  | "tape.monitor.alert";
 
 // ---------------------------------------------------------------------------
 // Verifications
@@ -1042,6 +1042,27 @@ export interface DpaAcceptParams {
 
 /** Response from POST /api/v1/lender/dpa/accept. */
 export interface DpaAcceptResponse {
+  accepted: true;
+  version: string;
+  accepted_at: string;
+}
+
+/** Response from GET /api/v1/lender/pilot-terms. */
+export interface PilotTermsResponse {
+  current_version: string;
+  accepted_version: string | null;
+  accepted_at: string | null;
+  acceptance_required: boolean;
+}
+
+/** Body for POST /api/v1/lender/pilot-terms/accept. */
+export interface PilotTermsAcceptParams {
+  /** Pilot Terms version string being accepted, e.g. "1.0". */
+  version: string;
+}
+
+/** Response from POST /api/v1/lender/pilot-terms/accept. */
+export interface PilotTermsAcceptResponse {
   accepted: true;
   version: string;
   accepted_at: string;
