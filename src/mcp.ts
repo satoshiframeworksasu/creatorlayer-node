@@ -14,7 +14,7 @@ function buildClient(): Creatorlayer {
     throw new Error(
       "CREATORLAYER_API_KEY environment variable is required. " +
       "Set it to your Creatorlayer lender API key (format: cl_live_... or " +
-      "cl_demo_api_key for sandbox testing)."
+      "your DEMO_API_KEY value for sandbox testing)."
     );
   }
   return new Creatorlayer({

@@ -18,7 +18,7 @@
  *   }
  *
  * Or run directly after building:
- *   CREATORLAYER_API_KEY=cl_demo_api_key CREATORLAYER_SANDBOX=true node dist/mcp-server.js
+ *   CREATORLAYER_API_KEY=$DEMO_API_KEY CREATORLAYER_SANDBOX=true node dist/mcp-server.js
  */
 import { runMcpServer } from "./mcp.js";
 
