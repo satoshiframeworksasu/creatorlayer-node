@@ -349,7 +349,17 @@ export interface MonitoredTapeRow {
   last_checked_at: string | null;
   last_alert_at: string | null;
   baseline_avg_revenue: number | null;
+  baseline_risk_tier: RiskTier | null;
+  baseline_dq_score: number | null;
+  baseline_volatility_cv: number | null;
   alert_threshold_pct: number;
+  warning_threshold_pct: number | null;
+  alert_on_tier_downgrade: boolean;
+  alert_on_platform_disconnect: boolean;
+  alert_on_dq_drop: boolean;
+  alert_dq_floor: number;
+  alert_on_volatility_spike: boolean;
+  alert_volatility_ceiling: number | null;
   /** Recurring billing amount in euro cents per month. Default 500 = €5.00. */
   monthly_rate_cents: number;
   obligor_reference: string;
@@ -364,8 +374,22 @@ export interface MonitoredVerificationsResponse {
 
 /** Parameters for POST /verifications/:id/monitor. */
 export interface EnrollMonitoringParams {
-  /** Income drop (%) that triggers an alert. Default 20. */
+  /** Income drop (%) that triggers a critical alert. Default 20. */
   alert_threshold_pct?: number;
+  /** Income drop (%) that triggers a warning-severity alert. Must be less than alert_threshold_pct. */
+  warning_threshold_pct?: number;
+  /** Fire tape.monitor.alert when the creator's risk tier downgrades. Default true. */
+  alert_on_tier_downgrade?: boolean;
+  /** Fire tape.monitor.alert when a connected platform revokes or expires OAuth access. Default true. */
+  alert_on_platform_disconnect?: boolean;
+  /** Fire tape.monitor.alert when data quality score falls below alert_dq_floor. Default false. */
+  alert_on_dq_drop?: boolean;
+  /** Minimum acceptable DQ score (0–100). Only active when alert_on_dq_drop is true. Default 40. */
+  alert_dq_floor?: number;
+  /** Fire tape.monitor.alert when income volatility exceeds alert_volatility_ceiling. Default false. */
+  alert_on_volatility_spike?: boolean;
+  /** Maximum acceptable income volatility coefficient. Only active when alert_on_volatility_spike is true. */
+  alert_volatility_ceiling?: number;
 }
 
 /** Response from POST /verifications/:id/monitor. */
@@ -373,10 +397,62 @@ export interface EnrollMonitoringResponse {
   enrolled: true;
   verification_id: string;
   baseline_avg_revenue: number | null;
+  baseline_risk_tier: RiskTier | null;
+  baseline_dq_score: number | null;
   alert_threshold_pct: number;
+  warning_threshold_pct: number | null;
+  alert_on_tier_downgrade: boolean;
+  alert_on_platform_disconnect: boolean;
+  alert_on_dq_drop: boolean;
+  alert_dq_floor: number;
+  alert_on_volatility_spike: boolean;
+  alert_volatility_ceiling: number | null;
   enrolled_at: string;
   /** Recurring billing amount in euro cents per month. Default 500 = €5.00. */
   monthly_rate_cents: number;
+}
+
+/** A single alert event from monitor_alert_log. */
+export interface MonitorAlertRow {
+  id: number;
+  alert_type: string;
+  severity: 'warning' | 'critical';
+  triggered_at: string;
+  details: Record<string, unknown>;
+  webhook_dispatched: boolean;
+}
+
+/** Response from GET /verifications/:id/monitor/alerts. */
+export interface MonitorAlertHistoryResponse {
+  alerts: MonitorAlertRow[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+/** Parameters for POST /api/v1/lender/monitor/bulk. */
+export interface BulkEnrollParams extends EnrollMonitoringParams {
+  /** Array of verification IDs to enroll. Maximum 100. */
+  verification_ids: string[];
+}
+
+/** Response from POST /api/v1/lender/monitor/bulk. */
+export interface BulkEnrollResponse {
+  enrolled: string[];
+  already_enrolled: string[];
+  not_found: string[];
+  alert_threshold_pct: number;
+  warning_threshold_pct: number | null;
+}
+
+/** Response from GET /api/v1/lender/portfolio/summary. */
+export interface PortfolioSummaryResponse {
+  total_monitored: number;
+  by_tier: Record<string, number>;
+  alerts_last_30d: number;
+  tapes_with_stale_data: number;
+  average_dq_score: number | null;
+  average_avg_monthly_revenue: number | null;
 }
 
 /** Response from DELETE /verifications/:id/monitor. */
@@ -984,27 +1060,56 @@ export interface LenderThresholdHistoryResponse {
 /** Response from GET /api/v1/lender/profile. */
 export interface LenderProfileResponse {
   lender_id: string;
-  company_name: string;
-  contact_email: string;
-  webhook_url: string | null;
-  plan_tier: string;
+  name: string | null;
+  email: string | null;
+  logo_url: string | null;
+  notification_email: string | null;
+  approved_products: string[] | null;
+  status: string | null;
+  dpa: {
+    current_version: string;
+    accepted_version: string | null;
+    accepted_at: string | null;
+    acceptance_required: boolean;
+  };
+  pilot_terms: {
+    current_version: string;
+    accepted_version: string | null;
+    accepted_at: string | null;
+    acceptance_required: boolean;
+  };
+  policy: {
+    default_session_expiry_days: number;
+    max_tape_retention_years: number;
+    webhook_log_retention_days: number;
+    staleness_threshold_days: number;
+    monitoring_alert_dedup_days: number;
+    default_alert_threshold_pct: number;
+  };
   created_at: string;
-  updated_at: string;
 }
 
 /** Body for PATCH /api/v1/lender/profile. */
 export interface PatchLenderProfileParams {
-  company_name?: string;
-  contact_email?: string;
-  webhook_url?: string | null;
+  name?: string;
+  logo_url?: string | null;
+  notification_email?: string | null;
+  max_tape_retention_years?: number | null;
+  webhook_log_retention_days?: number | null;
+  staleness_threshold_days?: number | null;
+  monitoring_alert_dedup_days?: number | null;
+  default_alert_threshold_pct?: number | null;
+  default_session_expiry_days?: number | null;
 }
 
 /** A single IP allowlist entry. */
 export interface IpAllowlistEntry {
   id: string;
+  lender_id: string;
   cidr: string;
   label: string | null;
   created_at: string;
+  created_by: string | null;
 }
 
 /** Response from GET /api/v1/lender/ip-allowlist. */
@@ -1072,16 +1177,38 @@ export interface PilotTermsAcceptResponse {
 
 /** Body for PATCH /api/v1/verifications/:id/monitor. */
 export interface PatchMonitorParams {
-  /** Income drop (%) that triggers an alert. */
-  alert_threshold_pct: number;
+  /** Income drop (%) that triggers a critical alert. */
+  alert_threshold_pct?: number;
+  /** Income drop (%) that triggers a warning-severity alert. Must be less than alert_threshold_pct. */
+  warning_threshold_pct?: number | null;
+  /** Fire tape.monitor.alert when the creator's risk tier downgrades. */
+  alert_on_tier_downgrade?: boolean;
+  /** Fire tape.monitor.alert when a connected platform revokes or expires OAuth access. */
+  alert_on_platform_disconnect?: boolean;
+  /** Fire tape.monitor.alert when data quality score falls below alert_dq_floor. */
+  alert_on_dq_drop?: boolean;
+  /** Minimum acceptable DQ score (0–100). Only active when alert_on_dq_drop is true. */
+  alert_dq_floor?: number;
+  /** Fire tape.monitor.alert when income volatility exceeds alert_volatility_ceiling. */
+  alert_on_volatility_spike?: boolean;
+  /** Maximum acceptable income volatility coefficient. Only active when alert_on_volatility_spike is true. */
+  alert_volatility_ceiling?: number;
 }
 
 /** Response from PATCH /api/v1/verifications/:id/monitor. */
 export interface PatchMonitorResponse {
   verification_id: string;
-  alert_threshold_pct: number;
-  baseline_avg_revenue: number | null;
   enrolled_at: string;
+  baseline_avg_revenue: number | null;
+  baseline_risk_tier: RiskTier | null;
+  alert_threshold_pct: number;
+  warning_threshold_pct: number | null;
+  alert_on_tier_downgrade: boolean;
+  alert_on_platform_disconnect: boolean;
+  alert_on_dq_drop: boolean;
+  alert_dq_floor: number;
+  alert_on_volatility_spike: boolean;
+  alert_volatility_ceiling: number | null;
 }
 
 // ---------------------------------------------------------------------------

@@ -9,6 +9,10 @@ import type {
   DpaResponse,
   DpaAcceptParams,
   DpaAcceptResponse,
+  PilotTermsResponse,
+  PilotTermsAcceptParams,
+  PilotTermsAcceptResponse,
+  PortfolioSummaryResponse,
 } from "../types.js";
 
 export class LenderProfile {
@@ -155,6 +159,62 @@ export class LenderProfile {
       "POST",
       "/api/v1/lender/dpa/accept",
       { body: params }
+    );
+  }
+
+  /**
+   * Retrieve the current Pilot Program Terms status.
+   *
+   * Returns the current Pilot Terms version, the version the lender has
+   * accepted, when it was accepted, and whether acceptance is required.
+   *
+   * @example
+   * const terms = await cl.lenderProfile.getPilotTerms();
+   * if (terms.acceptance_required) {
+   *   await cl.lenderProfile.acceptPilotTerms({ version: terms.current_version });
+   * }
+   */
+  getPilotTerms(): Promise<PilotTermsResponse> {
+    return this.client._request<PilotTermsResponse>(
+      "GET",
+      "/api/v1/lender/pilot-terms"
+    );
+  }
+
+  /**
+   * Record acceptance of the Pilot Program Terms.
+   *
+   * Must be called with the `version` string returned by `getPilotTerms()`.
+   * Acceptance is required before the pilot period begins.
+   *
+   * @example
+   * await cl.lenderProfile.acceptPilotTerms({ version: "1.0" });
+   */
+  acceptPilotTerms(params: PilotTermsAcceptParams): Promise<PilotTermsAcceptResponse> {
+    return this.client._request<PilotTermsAcceptResponse>(
+      "POST",
+      "/api/v1/lender/pilot-terms/accept",
+      { body: params }
+    );
+  }
+
+  /**
+   * Retrieve an aggregate summary of the lender's monitored portfolio.
+   *
+   * Returns counts by risk tier, alerts fired in the last 30 days, and
+   * average DQ score and monthly revenue across all enrolled verifications.
+   * Useful for building a portfolio health dashboard.
+   *
+   * @example
+   * const summary = await cl.lenderProfile.getPortfolioSummary();
+   * console.log("Total monitored:", summary.total_monitored);
+   * console.log("By tier:", summary.by_tier);
+   * console.log("Alerts last 30 days:", summary.alerts_last_30d);
+   */
+  getPortfolioSummary(): Promise<PortfolioSummaryResponse> {
+    return this.client._request<PortfolioSummaryResponse>(
+      "GET",
+      "/api/v1/lender/portfolio/summary"
     );
   }
 }

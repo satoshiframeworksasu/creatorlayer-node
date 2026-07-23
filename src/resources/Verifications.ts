@@ -11,6 +11,9 @@ import type {
   UnenrollMonitoringResponse,
   PatchMonitorParams,
   PatchMonitorResponse,
+  MonitorAlertHistoryResponse,
+  BulkEnrollParams,
+  BulkEnrollResponse,
   AddOverlayParams,
   AddOverlayResponse,
 } from "../types.js";
@@ -193,6 +196,56 @@ export class Verifications {
     return this.client._request<PatchMonitorResponse>(
       "PATCH",
       `/api/v1/verifications/${verificationId}/monitor`,
+      { body: params }
+    );
+  }
+
+  /**
+   * Retrieve the alert history for a monitored verification.
+   *
+   * Returns a paginated list of all tape.monitor.alert events that have fired
+   * for this verification. Each row includes the alert type, severity, trigger
+   * timestamp, and whether a webhook was dispatched.
+   *
+   * @example
+   * const { alerts, total } = await cl.verifications.listAlerts(verificationId);
+   * for (const alert of alerts) {
+   *   console.log(alert.alert_type, alert.severity, alert.triggered_at);
+   * }
+   */
+  listAlerts(
+    verificationId: string,
+    params?: { limit?: number; offset?: number }
+  ): Promise<MonitorAlertHistoryResponse> {
+    const qs = new URLSearchParams();
+    if (params?.limit !== undefined) qs.set("limit", String(params.limit));
+    if (params?.offset !== undefined) qs.set("offset", String(params.offset));
+    const query = qs.toString();
+    return this.client._request<MonitorAlertHistoryResponse>(
+      "GET",
+      `/api/v1/verifications/${verificationId}/monitor/alerts${query ? `?${query}` : ""}`
+    );
+  }
+
+  /**
+   * Enroll multiple verifications in portfolio monitoring in a single atomic request.
+   *
+   * All enrolments succeed or fail together. IDs not found or already enrolled
+   * are reported separately without aborting the rest of the batch.
+   *
+   * @example
+   * const result = await cl.verifications.bulkEnroll({
+   *   verification_ids: ["ver_a", "ver_b", "ver_c"],
+   *   alert_threshold_pct: 25,
+   *   alert_on_tier_downgrade: true,
+   * });
+   * console.log("Enrolled:", result.enrolled);
+   * console.log("Not found:", result.not_found);
+   */
+  bulkEnroll(params: BulkEnrollParams): Promise<BulkEnrollResponse> {
+    return this.client._request<BulkEnrollResponse>(
+      "POST",
+      "/api/v1/lender/monitor/bulk",
       { body: params }
     );
   }
