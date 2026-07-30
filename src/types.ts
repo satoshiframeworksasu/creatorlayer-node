@@ -5,16 +5,6 @@
 /**
  * Revenue platform types. Only these platforms contribute to income
  * verification and Risk Tape cashflow data.
- *
- * verified_revenue (direct API revenue data):
- *   adsense, stripe, shopify, etsy, gumroad, sellfy, paddle
- *   amazon — verified_revenue when connected via SP-API
- *
- * strong_proxy (estimated from subscription/engagement signals):
- *   twitch, patreon
- *
- * analytics (revenue data via analytics API):
- *   youtube — YouTube Analytics API
  */
 export type Platform =
   // Revenue platforms (verified_revenue)
@@ -41,13 +31,11 @@ export type AudiencePlatformType =
  * All types are accepted by POST /api/v1/verifications.
  */
 export type ProductType =
-  | "term_loan"            // Fixed-term amortising loan
-  | "rbf"                  // Revenue-Based Financing
-  | "revenue_loan"         // Fixed instalment sized off revenue
-  | "venture_debt"         // Growth-oriented; tolerates higher volatility
-  | "securitization_pool"; // At individual-tape level for securitization pools
-// murabaha and hpp (Islamic finance) are implemented in the engine but deactivated
-// at pilot launch. Re-enable by adding them to the API Zod enum and this union.
+  | "term_loan"
+  | "rbf"
+  | "revenue_loan"
+  | "venture_debt"
+  | "securitization_pool";
 export type VerificationStatus =
   | "pending_creator_consent"
   | "processing"
@@ -972,19 +960,19 @@ export interface ConsentSessionStatus {
 // ---------------------------------------------------------------------------
 
 export interface LenderThresholds {
-  /** Minimum months of track record required (default: 6) */
+  /** Minimum months of creator income history required. */
   min_track_record_months?: number;
-  /** Prime tier: max volatility CV (default: 0.25) */
+  /** Prime tier — maximum allowed income volatility. */
   prime_max_cv?: number;
-  /** Prime tier: max drawdown % (default: 0.40) */
+  /** Prime tier — maximum allowed revenue drawdown percentage. */
   prime_max_drawdown?: number;
-  /** Standard tier: max volatility CV (default: 0.50) */
+  /** Standard tier — maximum allowed income volatility. */
   standard_max_cv?: number;
-  /** Standard tier: max drawdown % (default: 0.60) */
+  /** Standard tier — maximum allowed revenue drawdown percentage. */
   standard_max_drawdown?: number;
-  /** Max advance as a multiple of annual avg revenue — prime tier (default: 0.35) */
+  /** Prime tier — max advance as a fraction of annual average revenue. */
   max_advance_multiple_prime?: number;
-  /** Max advance as a multiple of annual avg revenue — standard tier (default: 0.25) */
+  /** Standard tier — max advance as a fraction of annual average revenue. */
   max_advance_multiple_standard?: number;
   /** RBF: max revenue share % — prime tier */
   rbf_max_revenue_share_pct_prime?: number;
@@ -1012,9 +1000,9 @@ export interface LenderThresholds {
   platform_concentration_covenant_threshold?: number;
   /** Minimum number of platforms required before concentration covenant fires */
   platform_concentration_min_count?: number;
-  /** Data quality score below which a tape is ineligible (default: 20) */
+  /** Data quality score below which the creator is ineligible. */
   dq_ineligible_cap?: number;
-  /** Data quality score below which prime tier is capped to standard (default: 40) */
+  /** Data quality score below which prime tier is capped to standard. */
   dq_standard_cap?: number;
   /** Platform dependency flag trigger threshold (top-platform share fraction, e.g. 0.9) */
   platform_dependency_flag_threshold?: number;

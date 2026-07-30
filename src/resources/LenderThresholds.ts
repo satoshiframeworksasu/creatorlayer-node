@@ -14,7 +14,7 @@ export class LenderThresholdsResource {
    *
    * @example
    * const { effective } = await cl.lenderThresholds.get();
-   * console.log(effective.prime_max_cv); // 0.25
+   * console.log(effective.prime_max_cv);
    */
   get(): Promise<LenderThresholdsResponse> {
     return this.client._request<LenderThresholdsResponse>(
