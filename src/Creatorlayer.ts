@@ -16,6 +16,7 @@ import { Benchmarks } from "./resources/Benchmarks.js";
 import { Webhooks } from "./resources/Webhooks.js";
 import { GDPR } from "./resources/GDPR.js";
 import { Dashboard } from "./resources/Dashboard.js";
+import { Monitor } from "./resources/Monitor.js";
 import { Usage } from "./resources/Usage.js";
 import { EconomyIndex } from "./resources/EconomyIndex.js";
 // Securitization intentionally not imported — product stage 3, pending loan outcomes
@@ -49,6 +50,7 @@ export class Creatorlayer {
   readonly webhooks: Webhooks;
   readonly gdpr: GDPR;
   readonly dashboard: Dashboard;
+  readonly monitor: Monitor;
   readonly usage: Usage;
   readonly economyIndex: EconomyIndex;
   readonly dataRoom: DataRoom;
@@ -79,6 +81,7 @@ export class Creatorlayer {
     this.webhooks = new Webhooks(this);
     this.gdpr = new GDPR(this);
     this.dashboard = new Dashboard(this);
+    this.monitor = new Monitor(this);
     this.usage = new Usage(this);
     this.economyIndex = new EconomyIndex(this);
     this.dataRoom = new DataRoom(this);

@@ -502,11 +502,28 @@ export interface CreateWebhookParams {
   events: WebhookEventType[];
 }
 
+/** Body for PATCH /api/v1/webhooks/:id — all fields are optional. */
+export interface UpdateWebhookParams {
+  /** New destination URL. */
+  url?: string;
+  /** Replace the full subscribed event list. */
+  events?: WebhookEventType[];
+  /** Replace the signing secret (min 16 chars). */
+  secret?: string;
+  /** Enable or disable delivery without deleting the endpoint. */
+  active?: boolean;
+}
+
 export interface Webhook {
   webhook_id: string;
   url: string;
   events: WebhookEventType[];
   created_at: string;
+}
+
+/** Response from POST /api/v1/webhooks/:id/test. */
+export interface WebhookTestResponse {
+  sent: true;
 }
 
 export interface WebhookEventPayload {
@@ -1039,6 +1056,29 @@ export interface LenderThresholdHistoryEntry {
 
 export interface LenderThresholdHistoryResponse {
   history: LenderThresholdHistoryEntry[];
+}
+
+/** Response from POST /api/v1/lender/thresholds/accept. */
+export interface LenderThresholdsAcceptResponse {
+  accepted: true;
+  accepted_at: string;
+  accepted_thresholds: Required<LenderThresholds>;
+}
+
+// ---------------------------------------------------------------------------
+// Monitor (lender-scoped analytics)
+// ---------------------------------------------------------------------------
+
+/** A row from GET /api/v1/monitor/completion. */
+export interface MonitorCompletionRow {
+  status: string;
+  count: number;
+}
+
+/** A row from GET /api/v1/monitor/data_quality. */
+export interface MonitorDataQualityRow {
+  quality: "has_tape" | "no_tape";
+  count: number;
 }
 
 // ---------------------------------------------------------------------------

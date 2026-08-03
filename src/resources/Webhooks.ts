@@ -2,9 +2,11 @@ import { createHmac, timingSafeEqual } from "crypto";
 import type { Creatorlayer } from "../Creatorlayer.js";
 import type {
   CreateWebhookParams,
+  UpdateWebhookParams,
   Webhook,
   WebhookDeliveriesResponse,
   WebhookEventPayload,
+  WebhookTestResponse,
 } from "../types.js";
 import { CreatorlayerWebhookSignatureError } from "../errors.js";
 
@@ -43,6 +45,41 @@ export class Webhooks {
     return this.client._request<void>(
       "DELETE",
       `/api/v1/webhooks/${webhookId}`
+    );
+  }
+
+  /**
+   * Update a webhook endpoint — change its URL, subscribed events, signing
+   * secret, or active state. Pass only the fields you want to change.
+   *
+   * @example
+   * await cl.webhooks.update(webhookId, {
+   *   events: ["verification.completed", "tape.monitor.alert"],
+   *   active: true,
+   * });
+   */
+  update(webhookId: string, params: UpdateWebhookParams): Promise<Webhook> {
+    return this.client._request<Webhook>(
+      "PATCH",
+      `/api/v1/webhooks/${webhookId}`,
+      { body: params },
+    );
+  }
+
+  /**
+   * Fire a test delivery to a webhook endpoint to verify connectivity.
+   *
+   * Dispatches a synthetic `verification.completed` event with `test: true`
+   * in the payload. The delivery will appear in the webhook's delivery log.
+   *
+   * @example
+   * const result = await cl.webhooks.test(webhookId);
+   * console.log(result.sent); // true
+   */
+  test(webhookId: string): Promise<WebhookTestResponse> {
+    return this.client._request<WebhookTestResponse>(
+      "POST",
+      `/api/v1/webhooks/${webhookId}/test`,
     );
   }
 

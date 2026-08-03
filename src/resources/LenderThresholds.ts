@@ -1,5 +1,5 @@
 import type { Creatorlayer } from "../Creatorlayer.js";
-import type { LenderThresholds, LenderThresholdsResponse, LenderThresholdHistoryResponse } from "../types.js";
+import type { LenderThresholds, LenderThresholdsResponse, LenderThresholdHistoryResponse, LenderThresholdsAcceptResponse } from "../types.js";
 
 export class LenderThresholdsResource {
   constructor(private readonly client: Creatorlayer) {}
@@ -53,6 +53,24 @@ export class LenderThresholdsResource {
       "PUT",
       "/api/v1/lender/thresholds",
       { body: overrides }
+    );
+  }
+
+  /**
+   * Accept the current credit policy thresholds.
+   *
+   * Required before submitting verifications when `acceptance_required` is
+   * returned by `GET /api/v1/lender/thresholds`. Records the accepted
+   * thresholds as a compliance snapshot in the audit log.
+   *
+   * @example
+   * const { accepted_at } = await cl.lenderThresholds.accept();
+   * console.log(`Policy accepted at ${accepted_at}`);
+   */
+  accept(): Promise<LenderThresholdsAcceptResponse> {
+    return this.client._request<LenderThresholdsAcceptResponse>(
+      "POST",
+      "/api/v1/lender/thresholds/accept",
     );
   }
 
